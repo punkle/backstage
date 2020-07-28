@@ -59,7 +59,7 @@ describe('DatabaseEntitiesCatalog', () => {
       db.addEntity.mockResolvedValue({ entity });
 
       const catalog = new DatabaseEntitiesCatalog(db);
-      const result = await catalog.addOrUpdateEntity(entity);
+      const result = await catalog.addOrUpdateEntity('entities', entity);
 
       expect(db.entities).toHaveBeenCalledTimes(1);
       expect(db.entities).toHaveBeenCalledWith(expect.anything(), [
@@ -98,7 +98,7 @@ describe('DatabaseEntitiesCatalog', () => {
       db.updateEntity.mockResolvedValue({ entity });
 
       const catalog = new DatabaseEntitiesCatalog(db);
-      const result = await catalog.addOrUpdateEntity(entity);
+      const result = await catalog.addOrUpdateEntity('entities', entity);
 
       expect(db.entities).toHaveBeenCalledTimes(0);
       expect(db.entityByUid).toHaveBeenCalledTimes(1);
@@ -150,7 +150,7 @@ describe('DatabaseEntitiesCatalog', () => {
       db.updateEntity.mockResolvedValue({ entity: existing });
 
       const catalog = new DatabaseEntitiesCatalog(db);
-      const result = await catalog.addOrUpdateEntity(added);
+      const result = await catalog.addOrUpdateEntity('entities', added);
 
       expect(db.entities).toHaveBeenCalledTimes(1);
       expect(db.entities).toHaveBeenCalledWith(expect.anything(), [

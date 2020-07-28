@@ -26,33 +26,38 @@ import type { EntitiesCatalog } from './types';
 export class DatabaseEntitiesCatalog implements EntitiesCatalog {
   constructor(private readonly database: Database) {}
 
-  async entities(filters?: EntityFilters): Promise<Entity[]> {
+  async entities(tenantId: string, filters?: EntityFilters): Promise<Entity[]> {
     const items = await this.database.transaction(tx =>
-      this.database.entities(tx, filters),
+      this.database.entities(tenantId, tx, filters),
     );
     return items.map(i => i.entity);
   }
 
-  async entityByUid(uid: string): Promise<Entity | undefined> {
+  async entityByUid(
+    tenantId: string,
+    uid: string,
+  ): Promise<Entity | undefined> {
     const matches = await this.database.transaction(tx =>
-      this.database.entities(tx, [{ key: 'uid', values: [uid] }]),
+      this.database.entities(tenantId, tx, [{ key: 'uid', values: [uid] }]),
     );
 
     return matches.length ? matches[0].entity : undefined;
   }
 
   async entityByName(
+    tenantId: string,
     kind: string,
     namespace: string | undefined,
     name: string,
   ): Promise<Entity | undefined> {
     const response = await this.database.transaction(tx =>
-      this.entityByNameInternal(tx, kind, name, namespace),
+      this.entityByNameInternal(tenantId, tx, kind, name, namespace),
     );
     return response?.entity;
   }
 
   async addOrUpdateEntity(
+    tenantId: string,
     entity: Entity,
     locationId?: string,
   ): Promise<Entity> {
@@ -60,8 +65,9 @@ export class DatabaseEntitiesCatalog implements EntitiesCatalog {
       // Find a matching (by uid, or by compound name, depending on the given
       // entity) existing entity, to know whether to update or add
       const existing = entity.metadata.uid
-        ? await this.database.entityByUid(tx, entity.metadata.uid)
+        ? await this.database.entityByUid(tenantId, tx, entity.metadata.uid)
         : await this.entityByNameInternal(
+            tenantId,
             tx,
             entity.kind,
             entity.metadata.name,
@@ -74,29 +80,33 @@ export class DatabaseEntitiesCatalog implements EntitiesCatalog {
       if (existing) {
         const updated = generateUpdatedEntity(existing.entity, entity);
         response = await this.database.updateEntity(
+          tenantId,
           tx,
           { locationId, entity: updated },
           existing.entity.metadata.etag,
           existing.entity.metadata.generation,
         );
       } else {
-        response = await this.database.addEntity(tx, { locationId, entity });
+        response = await this.database.addEntity(tenantId, tx, {
+          locationId,
+          entity,
+        });
       }
 
       return response.entity;
     });
   }
 
-  async removeEntityByUid(uid: string): Promise<void> {
+  async removeEntityByUid(tenantId: string, uid: string): Promise<void> {
     return await this.database.transaction(async tx => {
-      const entityResponse = await this.database.entityByUid(tx, uid);
+      const entityResponse = await this.database.entityByUid(tenantId, tx, uid);
       if (!entityResponse) {
         throw new NotFoundError(`Entity with ID ${uid} was not found`);
       }
       const location =
         entityResponse.entity.metadata.annotations?.[LOCATION_ANNOTATION];
       const colocatedEntities = location
-        ? await this.database.entities(tx, [
+        ? await this.database.entities(tenantId, tx, [
             {
               key: LOCATION_ANNOTATION,
               values: [location],
@@ -104,23 +114,32 @@ export class DatabaseEntitiesCatalog implements EntitiesCatalog {
           ])
         : [entityResponse];
       for (const dbResponse of colocatedEntities) {
-        await this.database.removeEntity(tx, dbResponse?.entity.metadata.uid!);
+        await this.database.removeEntity(
+          tenantId,
+          tx,
+          dbResponse?.entity.metadata.uid!,
+        );
       }
 
       if (entityResponse.locationId) {
-        await this.database.removeLocation(tx, entityResponse?.locationId!);
+        await this.database.removeLocation(
+          tenantId,
+          tx,
+          entityResponse?.locationId!,
+        );
       }
       return undefined;
     });
   }
 
   private async entityByNameInternal(
+    tenantId: string,
     tx: unknown,
     kind: string,
     name: string,
     namespace: string | undefined,
   ): Promise<DbEntityResponse | undefined> {
-    const matches = await this.database.entities(tx, [
+    const matches = await this.database.entities(tenantId, tx, [
       { key: 'kind', values: [kind] },
       { key: 'name', values: [name] },
       {

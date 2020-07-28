@@ -22,15 +22,20 @@ import type { EntityFilters } from '../database';
 //
 
 export type EntitiesCatalog = {
-  entities(filters?: EntityFilters): Promise<Entity[]>;
-  entityByUid(uid: string): Promise<Entity | undefined>;
+  entities(tenantId: string, filters?: EntityFilters): Promise<Entity[]>;
+  entityByUid(tenantId: string, uid: string): Promise<Entity | undefined>;
   entityByName(
+    tenantId: string,
     kind: string,
     namespace: string | undefined,
     name: string,
   ): Promise<Entity | undefined>;
-  addOrUpdateEntity(entity: Entity, locationId?: string): Promise<Entity>;
-  removeEntityByUid(uid: string): Promise<void>;
+  addOrUpdateEntity(
+    tenantId: string,
+    entity: Entity,
+    locationId?: string,
+  ): Promise<Entity>;
+  removeEntityByUid(tenantId: string, uid: string): Promise<void>;
 };
 
 //

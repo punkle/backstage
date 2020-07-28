@@ -54,3 +54,7 @@ export async function validateRequestBody<T>(
 
   return (body as unknown) as T;
 }
+
+export function LocationsTableForTenant(tenantName: string): string {
+  return `locations-${tenantName}`;
+}

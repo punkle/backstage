@@ -15,15 +15,14 @@
  */
 
 import { errorHandler, InputError } from '@backstage/backend-common';
-import { locationSpecSchema } from '@backstage/catalog-model';
 import type { Entity } from '@backstage/catalog-model';
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import Router from 'express-promise-router';
 import { Logger } from 'winston';
 import { EntitiesCatalog, LocationsCatalog } from '../catalog';
 import { EntityFilters } from '../database';
 import { HigherOrderOperation } from '../ingestion/types';
-import { requireRequestBody, validateRequestBody } from './util';
+import { requireRequestBody } from './util';
 
 export interface RouterOptions {
   entitiesCatalog?: EntitiesCatalog;
@@ -35,39 +34,49 @@ export interface RouterOptions {
 export async function createRouter(
   options: RouterOptions,
 ): Promise<express.Router> {
-  const { entitiesCatalog, locationsCatalog, higherOrderOperation } = options;
+  const { entitiesCatalog, locationsCatalog } = options;
 
   const router = Router();
   router.use(express.json());
 
   if (entitiesCatalog) {
     router
+      .use(checkTenantHeader)
       .get('/entities', async (req, res) => {
+        const tenant = tenantHeader(req);
         const filters = translateQueryToEntityFilters(req);
-        const entities = await entitiesCatalog.entities(filters);
+        const entities = await entitiesCatalog.entities(tenant, filters);
         res.status(200).send(entities);
       })
       .post('/entities', async (req, res) => {
+        const tenant = tenantHeader(req);
         const body = await requireRequestBody(req);
-        const result = await entitiesCatalog.addOrUpdateEntity(body as Entity);
+        const result = await entitiesCatalog.addOrUpdateEntity(
+          tenant,
+          body as Entity,
+        );
         res.status(200).send(result);
       })
       .get('/entities/by-uid/:uid', async (req, res) => {
+        const tenant = tenantHeader(req);
         const { uid } = req.params;
-        const entity = await entitiesCatalog.entityByUid(uid);
+        const entity = await entitiesCatalog.entityByUid(tenant, uid);
         if (!entity) {
           res.status(404).send(`No entity with uid ${uid}`);
         }
         res.status(200).send(entity);
       })
       .delete('/entities/by-uid/:uid', async (req, res) => {
+        const tenant = tenantHeader(req);
         const { uid } = req.params;
-        await entitiesCatalog.removeEntityByUid(uid);
+        await entitiesCatalog.removeEntityByUid(tenant, uid);
         res.status(204).send();
       })
       .get('/entities/by-name/:kind/:namespace/:name', async (req, res) => {
+        const tenant = tenantHeader(req);
         const { kind, namespace, name } = req.params;
         const entity = await entitiesCatalog.entityByName(
+          tenant,
           kind,
           namespace,
           name,
@@ -81,14 +90,6 @@ export async function createRouter(
         }
         res.status(200).send(entity);
       });
-  }
-
-  if (higherOrderOperation) {
-    router.post('/locations', async (req, res) => {
-      const input = await validateRequestBody(req, locationSpecSchema);
-      const output = await higherOrderOperation.addLocation(input);
-      res.status(201).send(output);
-    });
   }
 
   if (locationsCatalog) {
@@ -139,4 +140,30 @@ function translateQueryToEntityFilters(
   }
 
   return filters;
+}
+
+function checkTenantHeader(req: Request, res: Response, next: NextFunction) {
+  console.log('Request URL:', req.url);
+  const tenant = tenantHeader(req);
+  console.log('Tenant id: ');
+  if (tenant === '') {
+    console.log('undefined tenant id!');
+    res.status(400).send();
+    return;
+  }
+  next();
+}
+
+function tenantHeader(req: Request): string {
+  const tenant = req.headers['x-tenant'];
+  if (tenant === undefined) {
+    return '';
+  }
+  if (typeof tenant === 'string') {
+    return tenant;
+  }
+  if (tenant instanceof Array && tenant.length >= 1) {
+    return tenant[0];
+  }
+  return '';
 }

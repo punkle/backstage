@@ -26,16 +26,18 @@ export class DatabaseLocationsCatalog implements LocationsCatalog {
   constructor(private readonly database: Database) {}
 
   async addLocation(location: Location): Promise<Location> {
-    const added = await this.database.addLocation(location);
+    const added = await this.database.addLocation('tenant1', location);
     return added;
   }
 
   async removeLocation(id: string): Promise<void> {
-    await this.database.transaction(tx => this.database.removeLocation(tx, id));
+    await this.database.transaction(tx =>
+      this.database.removeLocation('tenant1', tx, id),
+    );
   }
 
   async locations(): Promise<LocationResponse[]> {
-    const items = await this.database.locations();
+    const items = await this.database.locations('tenant1');
     return items.map(({ message, status, timestamp, ...data }) => ({
       currentStatus: {
         message,
@@ -47,7 +49,7 @@ export class DatabaseLocationsCatalog implements LocationsCatalog {
   }
 
   async locationHistory(id: string): Promise<DatabaseLocationUpdateLogEvent[]> {
-    return this.database.locationHistory(id);
+    return this.database.locationHistory('tenant1', id);
   }
 
   async location(id: string): Promise<LocationResponse> {
@@ -56,7 +58,7 @@ export class DatabaseLocationsCatalog implements LocationsCatalog {
       status,
       timestamp,
       ...data
-    } = await this.database.location(id);
+    } = await this.database.location('tenant1', id);
     return {
       currentStatus: {
         message,
@@ -72,6 +74,7 @@ export class DatabaseLocationsCatalog implements LocationsCatalog {
     entityName?: string,
   ): Promise<void> {
     await this.database.addLocationUpdateLogEvent(
+      'tenant1',
       locationId,
       DatabaseLocationUpdateLogStatus.SUCCESS,
       entityName,
@@ -84,6 +87,7 @@ export class DatabaseLocationsCatalog implements LocationsCatalog {
     entityName?: string,
   ): Promise<void> {
     await this.database.addLocationUpdateLogEvent(
+      'tenant1',
       locationId,
       DatabaseLocationUpdateLogStatus.FAIL,
       entityName,

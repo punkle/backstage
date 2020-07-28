@@ -37,8 +37,14 @@ export class CatalogClient implements CatalogApi {
   }
 
   private async getRequired(path: string): Promise<any> {
+    const requestHeaders: HeadersInit = new Headers();
+    requestHeaders.set('x-tenant', '123');
+
     const url = `${this.apiOrigin}${this.basePath}${path}`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: requestHeaders,
+    });
 
     if (!response.ok) {
       const payload = await response.text();
@@ -50,8 +56,14 @@ export class CatalogClient implements CatalogApi {
   }
 
   private async getOptional(path: string): Promise<any | undefined> {
+    const requestHeaders: HeadersInit = new Headers();
+    requestHeaders.set('x-tenant', '123');
+
     const url = `${this.apiOrigin}${this.basePath}${path}`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: requestHeaders,
+    });
 
     if (!response.ok) {
       if (response.status === 404) {

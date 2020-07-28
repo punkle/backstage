@@ -99,7 +99,11 @@ export type Database = {
    * @param request The entity being added
    * @returns The added entity, with uid, etag and generation set
    */
-  addEntity(tx: unknown, request: DbEntityRequest): Promise<DbEntityResponse>;
+  addEntity(
+    tenantId: string,
+    tx: unknown,
+    request: DbEntityRequest,
+  ): Promise<DbEntityResponse>;
 
   /**
    * Updates an existing entity in the catalog.
@@ -121,36 +125,50 @@ export type Database = {
    * @returns The updated entity
    */
   updateEntity(
+    tenantId: string,
     tx: unknown,
     request: DbEntityRequest,
     matchingEtag?: string,
     matchingGeneration?: number,
   ): Promise<DbEntityResponse>;
 
-  entities(tx: unknown, filters?: EntityFilters): Promise<DbEntityResponse[]>;
+  entities(
+    tenantId: string,
+    tx: unknown,
+    filters?: EntityFilters,
+  ): Promise<DbEntityResponse[]>;
 
   entity(
+    tenantId: string,
     tx: unknown,
     kind: string,
     name: string,
     namespace?: string,
   ): Promise<DbEntityResponse | undefined>;
 
-  entityByUid(tx: unknown, uid: string): Promise<DbEntityResponse | undefined>;
+  entityByUid(
+    tenantId: string,
+    tx: unknown,
+    uid: string,
+  ): Promise<DbEntityResponse | undefined>;
 
-  removeEntity(tx: unknown, uid: string): Promise<void>;
+  removeEntity(tenantId: string, tx: unknown, uid: string): Promise<void>;
 
-  addLocation(location: Location): Promise<DbLocationsRow>;
+  addLocation(tenantId: string, location: Location): Promise<DbLocationsRow>;
 
-  removeLocation(tx: unknown, id: string): Promise<void>;
+  removeLocation(tenantId: string, tx: unknown, id: string): Promise<void>;
 
-  location(id: string): Promise<DbLocationsRowWithStatus>;
+  location(tenantId: string, id: string): Promise<DbLocationsRowWithStatus>;
 
-  locations(): Promise<DbLocationsRowWithStatus[]>;
+  locations(tenantId: string): Promise<DbLocationsRowWithStatus[]>;
 
-  locationHistory(id: string): Promise<DatabaseLocationUpdateLogEvent[]>;
+  locationHistory(
+    tenantId: string,
+    id: string,
+  ): Promise<DatabaseLocationUpdateLogEvent[]>;
 
   addLocationUpdateLogEvent(
+    tenantId: string,
     locationId: string,
     status: DatabaseLocationUpdateLogStatus,
     entityName?: string,

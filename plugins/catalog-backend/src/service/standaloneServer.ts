@@ -17,12 +17,12 @@
 import { createServiceBuilder } from '@backstage/backend-common';
 import { Server } from 'http';
 import { Logger } from 'winston';
-import { HigherOrderOperations } from '..';
+// import { HigherOrderOperations } from '..';
 import { DatabaseEntitiesCatalog } from '../catalog/DatabaseEntitiesCatalog';
 import { DatabaseLocationsCatalog } from '../catalog/DatabaseLocationsCatalog';
 import { DatabaseManager } from '../database/DatabaseManager';
 import { createRouter } from './router';
-import { LocationReaders } from '../ingestion';
+// import { LocationReaders } from '../ingestion';
 
 export interface ServerOptions {
   port: number;
@@ -39,19 +39,19 @@ export async function startStandaloneServer(
   const db = await DatabaseManager.createInMemoryDatabase({ logger });
   const entitiesCatalog = new DatabaseEntitiesCatalog(db);
   const locationsCatalog = new DatabaseLocationsCatalog(db);
-  const locationReader = new LocationReaders();
-  const higherOrderOperation = new HigherOrderOperations(
-    entitiesCatalog,
-    locationsCatalog,
-    locationReader,
-    logger,
-  );
+  // const locationReader = new LocationReaders();
+  // const higherOrderOperation = new HigherOrderOperations(
+  //   entitiesCatalog,
+  //   locationsCatalog,
+  //   locationReader,
+  //   logger,
+  // );
 
   logger.debug('Starting application server...');
   const router = await createRouter({
     entitiesCatalog,
     locationsCatalog,
-    higherOrderOperation,
+    // higherOrderOperation,
     logger,
   });
   const service = createServiceBuilder(module)

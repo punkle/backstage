@@ -73,6 +73,7 @@ export class CommonDatabase implements Database {
   }
 
   async addEntity(
+    tenantId: string,
     txOpaque: unknown,
     request: DbEntityRequest,
   ): Promise<DbEntityResponse> {
@@ -86,7 +87,7 @@ export class CommonDatabase implements Database {
       throw new InputError('May not specify generation for new entities');
     }
 
-    await this.ensureNoSimilarNames(tx, request.entity);
+    await this.ensureNoSimilarNames(tenantId, tx, request.entity);
 
     const newEntity = lodash.cloneDeep(request.entity);
     newEntity.metadata = {
@@ -97,13 +98,14 @@ export class CommonDatabase implements Database {
     };
 
     const newRow = this.toEntityRow(request.locationId, newEntity);
-    await tx<DbEntitiesRow>('entities').insert(newRow);
-    await this.updateEntitiesSearch(tx, newRow.id, newEntity);
+    await tx<DbEntitiesRow>(entitiesTable(tenantId)).insert(newRow);
+    await this.updateEntitiesSearch(tenantId, tx, newRow.id, newEntity);
 
     return { locationId: request.locationId, entity: newEntity };
   }
 
   async updateEntity(
+    tenantId: string,
     txOpaque: unknown,
     request: DbEntityRequest,
     matchingEtag?: string,
@@ -118,7 +120,7 @@ export class CommonDatabase implements Database {
     }
 
     // Find existing entity
-    const oldRows = await tx<DbEntitiesRow>('entities')
+    const oldRows = await tx<DbEntitiesRow>(entitiesTable(tenantId))
       .where({ id: uid })
       .select();
     if (oldRows.length !== 1) {
@@ -145,12 +147,12 @@ export class CommonDatabase implements Database {
       }
     }
 
-    await this.ensureNoSimilarNames(tx, request.entity);
+    await this.ensureNoSimilarNames(tenantId, tx, request.entity);
 
     // Store the updated entity; select on the old etag to ensure that we do
     // not lose to another writer
     const newRow = this.toEntityRow(request.locationId, request.entity);
-    const updatedRows = await tx<DbEntitiesRow>('entities')
+    const updatedRows = await tx<DbEntitiesRow>(entitiesTable(tenantId))
       .where({ id: oldRow.id, etag: oldRow.etag })
       .update(newRow);
 
@@ -159,18 +161,19 @@ export class CommonDatabase implements Database {
       throw new ConflictError(`Failed to update entity`);
     }
 
-    await this.updateEntitiesSearch(tx, oldRow.id, request.entity);
+    await this.updateEntitiesSearch(tenantId, tx, oldRow.id, request.entity);
 
     return request;
   }
 
   async entities(
+    tenantId: string,
     txOpaque: unknown,
     filters?: EntityFilters,
   ): Promise<DbEntityResponse[]> {
     const tx = txOpaque as Knex.Transaction<any, any>;
 
-    let builder = tx<DbEntitiesRow>('entities');
+    let builder = tx<DbEntitiesRow>(entitiesTable(tenantId));
     for (const [indexU, filter] of (filters ?? []).entries()) {
       const index = Number(indexU);
       const key = filter.key.replace('*', '%');
@@ -192,7 +195,7 @@ export class CommonDatabase implements Database {
 
       builder = builder
         .leftOuterJoin(`entities_search as t${index}`, function joins() {
-          this.on('entities.id', '=', `t${index}.entity_id`);
+          this.on(`${entitiesTable(tenantId)}.id`, '=', `t${index}.entity_id`);
           this.andOn(`t${index}.key`, keyOp, tx.raw('?', [key]));
         })
         .where(function rules() {
@@ -211,7 +214,7 @@ export class CommonDatabase implements Database {
     }
 
     const rows = await builder
-      .select('entities.*')
+      .select(`${entitiesTable(tenantId)}.*`)
       .orderBy('kind', 'asc')
       .orderBy('namespace', 'asc')
       .orderBy('name', 'asc')
@@ -221,6 +224,7 @@ export class CommonDatabase implements Database {
   }
 
   async entity(
+    tenantId: string,
     txOpaque: unknown,
     kind: string,
     name: string,
@@ -228,7 +232,7 @@ export class CommonDatabase implements Database {
   ): Promise<DbEntityResponse | undefined> {
     const tx = txOpaque as Knex.Transaction<any, any>;
 
-    const rows = await tx<DbEntitiesRow>('entities')
+    const rows = await tx<DbEntitiesRow>(entitiesTable(tenantId))
       .where({ kind, name, namespace: namespace || null })
       .select();
 
@@ -240,12 +244,15 @@ export class CommonDatabase implements Database {
   }
 
   async entityByUid(
+    tenantId: string,
     txOpaque: unknown,
     id: string,
   ): Promise<DbEntityResponse | undefined> {
     const tx = txOpaque as Knex.Transaction<any, any>;
 
-    const rows = await tx<DbEntitiesRow>('entities').where({ id }).select();
+    const rows = await tx<DbEntitiesRow>(entitiesTable(tenantId))
+      .where({ id })
+      .select();
 
     if (rows.length !== 1) {
       return undefined;
@@ -254,32 +261,45 @@ export class CommonDatabase implements Database {
     return this.toEntityResponse(rows[0]);
   }
 
-  async removeEntity(txOpaque: unknown, uid: string): Promise<void> {
+  async removeEntity(
+    tenantId: string,
+    txOpaque: unknown,
+    uid: string,
+  ): Promise<void> {
     const tx = txOpaque as Knex.Transaction<any, any>;
 
-    const result = await tx<DbEntitiesRow>('entities').where({ id: uid }).del();
+    const result = await tx<DbEntitiesRow>(entitiesTable(tenantId))
+      .where({ id: uid })
+      .del();
 
     if (!result) {
       throw new NotFoundError(`Found no entity with ID ${uid}`);
     }
   }
 
-  async addLocation(location: Location): Promise<DbLocationsRow> {
+  async addLocation(
+    tenantId: string,
+    location: Location,
+  ): Promise<DbLocationsRow> {
     return await this.database.transaction<DbLocationsRow>(async tx => {
       const row: DbLocationsRow = {
         id: location.id,
         type: location.type,
         target: location.target,
       };
-      await tx<DbLocationsRow>('locations').insert(row);
+      await tx<DbLocationsRow>(locationsTable(tenantId)).insert(row);
       return row;
     });
   }
 
-  async removeLocation(txOpaque: unknown, id: string): Promise<void> {
+  async removeLocation(
+    tenantId: string,
+    txOpaque: unknown,
+    id: string,
+  ): Promise<void> {
     const tx = txOpaque as Knex.Transaction<any, any>;
 
-    await tx<DbEntitiesRow>('entities')
+    await tx<DbEntitiesRow>(locationsTable(tenantId))
       .where({ location_id: id })
       .update({ location_id: null });
 
@@ -290,8 +310,13 @@ export class CommonDatabase implements Database {
     }
   }
 
-  async location(id: string): Promise<DbLocationsRowWithStatus> {
-    const items = await this.database<DbLocationsRowWithStatus>('locations')
+  async location(
+    tenantId: string,
+    id: string,
+  ): Promise<DbLocationsRowWithStatus> {
+    const items = await this.database<DbLocationsRowWithStatus>(
+      locationsTable(tenantId),
+    )
       .where('locations.id', id)
       .leftOuterJoin(
         'location_update_log_latest',
@@ -310,25 +335,30 @@ export class CommonDatabase implements Database {
     return items[0];
   }
 
-  async locations(): Promise<DbLocationsRowWithStatus[]> {
-    const locations = await this.database('locations')
+  async locations(tenantId: string): Promise<DbLocationsRowWithStatus[]> {
+    const tableName = locationsTable(tenantId);
+    const updateTableName = locationUpdateTable(tenantId);
+    const locations = await this.database(tableName)
       .leftOuterJoin(
-        'location_update_log_latest',
-        'locations.id',
-        'location_update_log_latest.location_id',
+        updateTableName,
+        `${tableName}.id`,
+        `${updateTableName}.location_id`,
       )
-      .select('locations.*', {
-        status: 'location_update_log_latest.status',
-        timestamp: 'location_update_log_latest.created_at',
-        message: 'location_update_log_latest.message',
+      .select(`${tableName}.*`, {
+        status: `${updateTableName}.status`,
+        timestamp: `${updateTableName}.created_at`,
+        message: `${updateTableName}.message`,
       });
 
     return locations;
   }
 
-  async locationHistory(id: string): Promise<DatabaseLocationUpdateLogEvent[]> {
+  async locationHistory(
+    tenantId: string,
+    id: string,
+  ): Promise<DatabaseLocationUpdateLogEvent[]> {
     const result = await this.database<DatabaseLocationUpdateLogEvent>(
-      'location_update_log',
+      locationUpdateTable(tenantId),
     )
       .where('location_id', id)
       .orderBy('created_at', 'desc')
@@ -339,13 +369,14 @@ export class CommonDatabase implements Database {
   }
 
   async addLocationUpdateLogEvent(
+    tenantId: string,
     locationId: string,
     status: DatabaseLocationUpdateLogStatus,
     entityName?: string,
     message?: string,
   ): Promise<void> {
     return this.database<DatabaseLocationUpdateLogEvent>(
-      'location_update_log',
+      locationUpdateTable(tenantId),
     ).insert({
       id: uuidv4(),
       status,
@@ -356,16 +387,19 @@ export class CommonDatabase implements Database {
   }
 
   private async updateEntitiesSearch(
+    tenantId: string,
     tx: Knex.Transaction<any, any>,
     entityId: string,
     data: Entity,
   ): Promise<void> {
     try {
       const entries = buildEntitySearch(entityId, data);
-      await tx<DbEntitiesSearchRow>('entities_search')
+      await tx<DbEntitiesSearchRow>(entitiesSearchTable(tenantId))
         .where({ entity_id: entityId })
         .del();
-      await tx<DbEntitiesSearchRow>('entities_search').insert(entries);
+      await tx<DbEntitiesSearchRow>(entitiesSearchTable(tenantId)).insert(
+        entries,
+      );
     } catch {
       // ignore intentionally - if this happens, the entity was deleted before
       // we got around to writing the entries
@@ -373,6 +407,7 @@ export class CommonDatabase implements Database {
   }
 
   private async ensureNoSimilarNames(
+    tenantId: string,
     tx: Knex.Transaction<any, any>,
     data: Entity,
   ): Promise<void> {
@@ -383,7 +418,7 @@ export class CommonDatabase implements Database {
     const newNameNorm = this.normalize(newName);
     const newNamespaceNorm = this.normalize(newNamespace || '');
 
-    for (const item of await this.entities(tx)) {
+    for (const item of await this.entities(tenantId, tx)) {
       if (data.metadata.uid === item.entity.metadata.uid) {
         continue;
       }
@@ -456,4 +491,20 @@ export class CommonDatabase implements Database {
       entity,
     };
   }
+}
+
+function entitiesTable(tenantId: string): string {
+  return `entities-${tenantId}`;
+}
+
+function entitiesSearchTable(tenantId: string): string {
+  return `entities_search-${tenantId}`;
+}
+
+function locationsTable(tenantId: string): string {
+  return `locations-${tenantId}`;
+}
+
+function locationUpdateTable(tenantId: string): string {
+  return `location_update_log_latest-${tenantId}`;
 }

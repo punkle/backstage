@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export { HigherOrderOperations } from './HigherOrderOperations';
+// export { HigherOrderOperations } from './HigherOrderOperations';
 export { LocationReaders } from './LocationReaders';
 export type {
   AddLocationResult,
