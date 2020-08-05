@@ -2,6 +2,25 @@
 # yarn lockfile v1
 
 
+"@RoadieHQ/github-pull-requests@file:plugins/github-pull-requests":
+  version "0.1.1-alpha.16"
+  dependencies:
+    "@backstage/catalog-model" "^0.1.1-alpha.16"
+    "@backstage/core" "^0.1.1-alpha.16"
+    "@backstage/core-api" "^0.1.1-alpha.16"
+    "@backstage/plugin-catalog" "^0.1.1-alpha.16"
+    "@backstage/theme" "^0.1.1-alpha.16"
+    "@material-ui/core" "^4.9.1"
+    "@material-ui/icons" "^4.9.1"
+    "@material-ui/lab" "4.0.0-alpha.45"
+    "@octokit/rest" "^18.0.0"
+    "@octokit/types" "^5.0.1"
+    moment "^2.27.0"
+    react "^16.13.1"
+    react-dom "^16.13.1"
+    react-router-dom "6.0.0-beta.0"
+    react-use "^15.3.3"
+
 "@apollo/protobufjs@^1.0.3":
   version "1.0.4"
   resolved "https://registry.npmjs.org/@apollo/protobufjs/-/protobufjs-1.0.4.tgz#cf01747a55359066341f31b5ce8db17df44244e0"
