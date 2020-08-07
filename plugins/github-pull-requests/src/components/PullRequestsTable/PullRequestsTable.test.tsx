@@ -38,13 +38,13 @@ describe('ExampleFetchComponent', () => {
     );
     expect(await rendered.findByText(testProjectName)).toBeInTheDocument();
   });
-  it('should render', async () => {
+  it('should render table list item', async () => {
     mockFetch.mockResponse(() => new Promise(() => {}));
     const testTitle = 'Add migration for entity_search column fix';
     const rendered = render(
       <>
         <PullRequestsTableView
-          projectName={'test'}
+          projectName="test"
           loading={false}
           pageSize={10}
           page={0}

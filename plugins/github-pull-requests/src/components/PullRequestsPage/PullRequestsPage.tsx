@@ -15,9 +15,8 @@
  */
 
 import React, { FC } from 'react';
-import { Typography, Grid } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
 import {
-  InfoCard,
   Header,
   Page,
   pageTheme,
