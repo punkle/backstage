@@ -14,74 +14,49 @@
  * limitations under the License.
  */
 import React, { FC } from 'react';
-import { Link, Typography, Box, IconButton, Tooltip } from '@material-ui/core';
-import RetryIcon from '@material-ui/icons/Replay';
+import { Typography, Box } from '@material-ui/core';
 import GitHubIcon from '@material-ui/icons/GitHub';
-import { Link as RouterLink, generatePath } from 'react-router-dom';
 import { Table, TableColumn } from '@backstage/core';
-import SyncIcon from '@material-ui/icons/Sync';
 import { useEntityCompoundName } from '@backstage/plugin-catalog';
 import { useProjectName } from '../useProjectName';
 import { usePullRequests } from '../usePullRequests';
 
 export type PullRequest = {
   id: number;
-  url?: string;
+  number: number;
+  url: string;
+  title: string;
 };
 
-// const generatedColumns: TableColumn[] = [
-//   {
-//     title: 'ID',
-//     field: 'id',
-//     type: 'numeric',
-//     width: '150px',
-//   },
-//   {
-//     title: 'Message',
-//     field: 'message',
-//     highlight: true,
-//     render: (row: Partial<WorkflowRun>) => (
-//       <Link component={RouterLink} to={generatePath('/', { id: row.id! })}>
-//         {row.message}
-//       </Link>
-//     ),
-//   },
-//   {
-//     title: 'Source',
-//     render: (row: Partial<WorkflowRun>) => (
-//       <Typography variant="body2" noWrap>
-//         <p>{row.source?.branchName}</p>
-//         <p>{row.source?.commit.hash}</p>
-//       </Typography>
-//     ),
-//   },
-//   {
-//     title: 'Status',
-//     width: '150px',
-
-//     render: (row: Partial<WorkflowRun>) => (
-//       <Box display="flex" alignItems="center"></Box>
-//     ),
-//   },
-//   {
-//     title: 'Actions',
-//     render: (row: Partial<WorkflowRun>) => (
-//       <Tooltip title="Rerun workflow">
-//         <IconButton onClick={row.onReRunClick}>
-//           <RetryIcon />
-//         </IconButton>
-//       </Tooltip>
-//     ),
-//     width: '10%',
-//   },
-// ];
+const generatedColumns: TableColumn[] = [
+  {
+    title: 'ID',
+    field: 'id',
+    width: '150px',
+    render: (row: Partial<PullRequest>) => (
+      <Box fontWeight="fontWeightBold">
+        <a href={row.url!}>#{row.number}</a>
+      </Box>
+    ),
+  },
+  {
+    title: 'Title',
+    field: 'message',
+    highlight: true,
+    render: (row: Partial<PullRequest>) => (
+      <Typography variant="body2" noWrap>
+        {row.title}
+      </Typography>
+    ),
+  },
+];
 
 type Props = {
   loading: boolean;
   retry: () => void;
-  runs?: WorkflowRun[];
   projectName: string;
   page: number;
+  prData?: PullRequest[];
   onChangePage: (page: number) => void;
   total: number;
   pageSize: number;
@@ -93,8 +68,7 @@ export const PullRequestsTableView: FC<Props> = ({
   loading,
   pageSize,
   page,
-  retry,
-  runs,
+  prData,
   onChangePage,
   onChangePageSize,
   total,
@@ -105,15 +79,8 @@ export const PullRequestsTableView: FC<Props> = ({
       options={{ paging: true, pageSize, padding: 'dense' }}
       totalCount={total}
       page={page}
-      actions={[
-        {
-          icon: () => <SyncIcon />,
-          tooltip: 'Reload workflow runs',
-          isFreeAction: true,
-          onClick: () => retry(),
-        },
-      ]}
-      data={runs ?? []}
+      actions={[]}
+      data={prData ?? []}
       onChangePage={onChangePage}
       onChangeRowsPerPage={onChangePageSize}
       title={
@@ -123,7 +90,7 @@ export const PullRequestsTableView: FC<Props> = ({
           <Typography variant="h6">{projectName}</Typography>
         </Box>
       }
-      columns={[]}
+      columns={generatedColumns}
     />
   );
 };
@@ -131,8 +98,6 @@ export const PullRequestsTableView: FC<Props> = ({
 export const PullRequestsTable = () => {
   let entityCompoundName = useEntityCompoundName();
   if (!entityCompoundName.name) {
-    // TODO(shmidt-i): remove when is fully integrated
-    // into the entity view
     entityCompoundName = {
       kind: 'Component',
       name: 'backstage',

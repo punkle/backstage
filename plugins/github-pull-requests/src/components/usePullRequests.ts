@@ -17,7 +17,7 @@ import { useState } from 'react';
 import { useAsyncRetry } from 'react-use';
 import { PullRequest } from './PullRequestsTable/PullRequestsTable';
 import { githubPullRequestsApiRef } from '../api/GithubPullRequestsApi';
-import { useApi, githubAuthApiRef, errorApiRef } from '@backstage/core';
+import { useApi, githubAuthApiRef } from '@backstage/core';
 import { PullsListResponseData } from '@octokit/types';
 
 export function usePullRequests({
@@ -32,16 +32,17 @@ export function usePullRequests({
   const api = useApi(githubPullRequestsApiRef);
   const auth = useApi(githubAuthApiRef);
 
-  const errorApi = useApi(errorApiRef);
-
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(5);
 
-  const { loading, value: runs, retry, error } = useAsyncRetry<
+  const { loading, value: prData, retry, error } = useAsyncRetry<
     PullRequest[]
   >(async () => {
     const token = await auth.getAccessToken(['repo']);
+    if (!repo) {
+      return [];
+    }
     return (
       api
         // GitHub API pagination count starts from 1
@@ -54,9 +55,13 @@ export function usePullRequests({
           branch,
         })
         .then((pullRequestsData: PullsListResponseData): PullRequest[] => {
-          // setTotal(pullRequestsData.total_count);
-          // Transformation here
-          return pullRequestsData.map(({ id, url }) => ({ url, id }));
+          setTotal(pullRequestsData.length);
+          return pullRequestsData.map(({ id, url, title, number }) => ({
+            url,
+            id,
+            number,
+            title,
+          }));
         })
     );
   }, [page, pageSize, repo, owner]);
@@ -66,13 +71,13 @@ export function usePullRequests({
       page,
       pageSize,
       loading,
-      runs,
+      prData,
       projectName: `${owner}/${repo}`,
       total,
       error,
     },
     {
-      runs,
+      prData,
       setPage,
       setPageSize,
       retry,

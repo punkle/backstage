@@ -17,12 +17,53 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import mockFetch from 'jest-fetch-mock';
-import ExampleFetchComponent from './PullRequestsTable';
+import { PullRequestsTableView } from './PullRequestsTable';
 
 describe('ExampleFetchComponent', () => {
   it('should render', async () => {
     mockFetch.mockResponse(() => new Promise(() => {}));
-    const rendered = render(<ExampleFetchComponent />);
-    expect(await rendered.findByTestId('progress')).toBeInTheDocument();
+    const testProjectName = 'test-project-name';
+    const rendered = render(
+      <PullRequestsTableView
+        projectName={testProjectName}
+        loading={false}
+        pageSize={10}
+        page={0}
+        prData={[]}
+        retry={() => {}}
+        onChangePage={() => {}}
+        onChangePageSize={() => {}}
+        total={0}
+      />,
+    );
+    expect(await rendered.findByText(testProjectName)).toBeInTheDocument();
+  });
+  it('should render', async () => {
+    mockFetch.mockResponse(() => new Promise(() => {}));
+    const testTitle = 'Add migration for entity_search column fix';
+    const rendered = render(
+      <>
+        <PullRequestsTableView
+          projectName={'test'}
+          loading={false}
+          pageSize={10}
+          page={0}
+          prData={[
+            {
+              id: 464572082,
+              number: 1862,
+              title: testTitle,
+              url: 'https://api.github.com/repos/spotify/backstage/pulls/1862',
+            },
+          ]}
+          retry={() => {}}
+          onChangePage={() => {}}
+          onChangePageSize={() => {}}
+          total={0}
+        />
+        ,
+      </>,
+    );
+    expect(await rendered.findByText(testTitle)).toBeInTheDocument();
   });
 });

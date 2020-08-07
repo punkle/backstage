@@ -16,6 +16,7 @@
 
 import { GithubPullRequestsApi } from './GithubPullRequestsApi';
 import { Octokit } from '@octokit/rest';
+import { PullsListResponseData } from '@octokit/types';
 
 export class GithubPullRequestsClient implements GithubPullRequestsApi {
   async listPullRequests({
@@ -24,7 +25,7 @@ export class GithubPullRequestsClient implements GithubPullRequestsApi {
     repo,
     pageSize,
     page,
-    branch,
+    branch = 'master',
   }: {
     token: string;
     owner: string;
@@ -32,13 +33,14 @@ export class GithubPullRequestsClient implements GithubPullRequestsApi {
     pageSize?: number;
     page?: number;
     branch?: string;
-  }): Promise<any> {
-    return new Octokit({ auth: token }).pulls.list({
+  }): Promise<PullsListResponseData> {
+    const pullRequestResponse = await new Octokit({ auth: token }).pulls.list({
       repo,
       pageSize,
       page,
-      branch,
+      branch: branch,
       owner,
     });
+    return pullRequestResponse.data;
   }
 }

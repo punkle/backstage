@@ -15,16 +15,21 @@
  */
 
 import { createPlugin, createRouteRef } from '@backstage/core';
-import ExampleComponent from './components/PullRequestsPage';
+import PullRequestsPage from './components/PullRequestsPage';
 
 export const rootRouteRef = createRouteRef({
   path: '/github-pull-requests',
   title: 'github-pull-requests',
 });
+export const projectRouteRef = createRouteRef({
+  path: '/github-pull-requests/:kind/:optionalNamespaceAndName',
+  title: 'GitHub Pull requests for project',
+});
 
 export const plugin = createPlugin({
   id: 'github-pull-requests',
   register({ router }) {
-    router.addRoute(rootRouteRef, ExampleComponent);
+    router.addRoute(rootRouteRef, PullRequestsPage);
+    router.addRoute(projectRouteRef, PullRequestsPage);
   },
 });

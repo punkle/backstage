@@ -28,7 +28,7 @@ import {
 } from '@backstage/core';
 import { PullRequestsTable } from '../PullRequestsTable';
 
-const ExampleComponent: FC<{}> = () => (
+const PullRequestsPage: FC<{}> = () => (
   <Page theme={pageTheme.tool}>
     <Header
       title="Welcome to github-pull-requests!"
@@ -39,16 +39,11 @@ const ExampleComponent: FC<{}> = () => (
     </Header>
     <Content>
       <ContentHeader title="Plugin title">
-        <SupportButton>A description of your plugin goes here.</SupportButton>
+        <SupportButton>
+          Plugin to show a project's pull requests on GitHub
+        </SupportButton>
       </ContentHeader>
       <Grid container spacing={3} direction="column">
-        <Grid item>
-          <InfoCard title="Information card">
-            <Typography variant="body1">
-              All content should be wrapped in a card like this.
-            </Typography>
-          </InfoCard>
-        </Grid>
         <Grid item>
           <PullRequestsTable />
         </Grid>
@@ -57,4 +52,4 @@ const ExampleComponent: FC<{}> = () => (
   </Page>
 );
 
-export default ExampleComponent;
+export default PullRequestsPage;
