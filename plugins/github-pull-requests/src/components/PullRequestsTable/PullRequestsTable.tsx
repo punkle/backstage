@@ -26,6 +26,10 @@ export type PullRequest = {
   number: number;
   url: string;
   title: string;
+  updatedTime: string;
+  createdTime: string;
+  creatorNickname: string;
+  creatorProfileLink: string;
 };
 
 const generatedColumns: TableColumn[] = [
@@ -48,6 +52,38 @@ const generatedColumns: TableColumn[] = [
     render: (row: Partial<PullRequest>) => (
       <Typography variant="body2" noWrap>
         {row.title}
+      </Typography>
+    ),
+  },
+  {
+    title: 'Creator',
+    field: 'creatorNickname',
+    width: '250px',
+    render: (row: Partial<PullRequest>) => (
+      <Box fontWeight="fontWeightBold">
+        <a target="_blank" href={row.creatorProfileLink!}>
+          {row.creatorNickname}
+        </a>
+      </Box>
+    ),
+  },
+  {
+    title: 'Created',
+    field: 'createdTime',
+    highlight: true,
+    render: (row: Partial<PullRequest>) => (
+      <Typography variant="body2" noWrap>
+        {row.createdTime}
+      </Typography>
+    ),
+  },
+  {
+    title: 'Last updated',
+    field: 'updatedTime',
+    highlight: true,
+    render: (row: Partial<PullRequest>) => (
+      <Typography variant="body2" noWrap>
+        {row.updatedTime}
       </Typography>
     ),
   },

@@ -15,11 +15,22 @@
  */
 import { useState } from 'react';
 import { useAsyncRetry } from 'react-use';
-import { PullRequest } from './PullRequestsTable/PullRequestsTable';
 import { githubPullRequestsApiRef } from '../api/GithubPullRequestsApi';
 import { useApi, githubAuthApiRef } from '@backstage/core';
 import { PullsListResponseData } from '@octokit/types';
-import moment from 'moment';
+
+export type PullRequestStats = {
+  avgTimeUntilMerge: string;
+  avgSizeInLines: string;
+  mergedToClosedRatio: string;
+};
+
+export type PullRequestStatsCount = {
+  avgTimeUntilMerge: number;
+  avgSizeInLines: number;
+  closedCount: number;
+  mergedCount: number;
+};
 
 export function usePullRequests({
   owner,
@@ -33,19 +44,18 @@ export function usePullRequests({
   const api = useApi(githubPullRequestsApiRef);
   const auth = useApi(githubAuthApiRef);
 
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(5);
-  const getElapsedTime = (start: string) => {
-    return moment(start).fromNow();
-  };
+  const [pageSize, setPageSize] = useState(100);
 
-  const { loading, value: prData, retry, error } = useAsyncRetry<
-    PullRequest[]
+  const { loading, value: statsData, retry, error } = useAsyncRetry<
+    PullRequestStats
   >(async () => {
     const token = await auth.getAccessToken(['repo']);
     if (!repo) {
-      return [];
+      return {
+        avgTimeUntilMerge: '0 min',
+        avgSizeInLines: '0',
+        mergedToClosedRatio: '0%',
+      };
     }
     return (
       api
@@ -55,59 +65,52 @@ export function usePullRequests({
           owner,
           repo,
           pageSize,
-          page: page + 1,
+          page: 1,
           branch,
         })
         .then(
           ({
-            maxTotalItems,
             pullRequestsData,
           }: {
-            maxTotalItems?: number;
             pullRequestsData: PullsListResponseData;
           }) => {
-            if (maxTotalItems) {
-              setTotal(maxTotalItems);
-            }
-
-            return pullRequestsData.map(
-              ({
-                id,
-                html_url,
-                title,
-                number,
-                created_at,
-                updated_at,
-                user,
-              }) => ({
-                url: html_url,
-                id,
-                number,
-                title,
-                creatorNickname: user.login,
-                creatorProfileLink: user.html_url,
-                createdTime: getElapsedTime(created_at),
-                updatedTime: getElapsedTime(updated_at),
-              }),
+            //TODO: calculations
+            const calcResult = pullRequestsData.reduce<PullRequestStatsCount>(
+              (acc, curr) => {
+                return acc;
+              },
+              {
+                avgTimeUntilMerge: 0,
+                avgSizeInLines: 0,
+                closedCount: 0,
+                mergedCount: 4,
+              },
             );
+
+            return {
+              avgTimeUntilMerge: '7h 20m',
+              avgSizeInLines: `${Math.round(
+                calcResult.avgSizeInLines / pullRequestsData.length,
+              )}`,
+              mergedToClosedRatio: `${Math.round(
+                (calcResult.mergedCount / calcResult.closedCount) * 100,
+              )}%`,
+            };
           },
         )
     );
-  }, [page, pageSize, repo, owner]);
+  }, [pageSize, repo, owner]);
 
   return [
     {
-      page,
       pageSize,
       loading,
-      prData,
+      statsData,
       projectName: `${owner}/${repo}`,
-      total,
       error,
     },
     {
-      prData,
-      setPage,
+      statsData,
       setPageSize,
       retry,
     },

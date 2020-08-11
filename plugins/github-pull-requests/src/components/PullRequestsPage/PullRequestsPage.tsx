@@ -26,6 +26,7 @@ import {
   SupportButton,
 } from '@backstage/core';
 import { PullRequestsTable } from '../PullRequestsTable';
+import { PullRequestsStats } from '../PullRequestsStats/PullRequestsStats';
 
 const PullRequestsPage: FC<{}> = () => (
   <Page theme={pageTheme.tool}>
@@ -37,7 +38,7 @@ const PullRequestsPage: FC<{}> = () => (
       <HeaderLabel label="Lifecycle" value="Alpha" />
     </Header>
     <Content>
-      <ContentHeader title="Plugin title">
+      <ContentHeader title="Pull requests plugin">
         <SupportButton>
           Plugin to show a project's pull requests on GitHub
         </SupportButton>
@@ -45,6 +46,11 @@ const PullRequestsPage: FC<{}> = () => (
       <Grid container spacing={3} direction="column">
         <Grid item>
           <PullRequestsTable />
+        </Grid>
+      </Grid>
+      <Grid container direction="column" alignItems="flex-start">
+        <Grid item>
+          <PullRequestsStats />
         </Grid>
       </Grid>
     </Content>
