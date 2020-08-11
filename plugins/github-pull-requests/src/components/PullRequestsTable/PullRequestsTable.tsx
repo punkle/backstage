@@ -31,17 +31,19 @@ export type PullRequest = {
 const generatedColumns: TableColumn[] = [
   {
     title: 'ID',
-    field: 'id',
+    field: 'number',
     width: '150px',
     render: (row: Partial<PullRequest>) => (
       <Box fontWeight="fontWeightBold">
-        <a href={row.url!}>#{row.number}</a>
+        <a target="_blank" href={row.url!}>
+          #{row.number}
+        </a>
       </Box>
     ),
   },
   {
     title: 'Title',
-    field: 'message',
+    field: 'title',
     highlight: true,
     render: (row: Partial<PullRequest>) => (
       <Typography variant="body2" noWrap>

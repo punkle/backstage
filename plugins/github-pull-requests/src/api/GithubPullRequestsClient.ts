@@ -23,24 +23,31 @@ export class GithubPullRequestsClient implements GithubPullRequestsApi {
     token,
     owner,
     repo,
-    pageSize,
+    pageSize = 5,
     page,
-    branch = 'master',
   }: {
     token: string;
     owner: string;
     repo: string;
     pageSize?: number;
     page?: number;
-    branch?: string;
-  }): Promise<PullsListResponseData> {
+  }): Promise<{
+    maxTotalItems?: number;
+    pullRequestsData: PullsListResponseData;
+  }> {
     const pullRequestResponse = await new Octokit({ auth: token }).pulls.list({
       repo,
-      pageSize,
+      state: 'all',
+      per_page: pageSize,
       page,
-      branch: branch,
       owner,
     });
-    return pullRequestResponse.data;
+    const paginationLinks = pullRequestResponse.headers.link;
+    const lastPage = paginationLinks?.match(/\d+(?!.*page=\d*)/g) || ['1'];
+    const maxTotalItems = paginationLinks?.endsWith('rel="last"')
+      ? parseInt(lastPage[0], 10) * pageSize
+      : undefined;
+
+    return { maxTotalItems, pullRequestsData: pullRequestResponse.data };
   }
 }

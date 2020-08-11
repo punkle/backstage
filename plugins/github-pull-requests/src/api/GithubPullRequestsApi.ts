@@ -37,5 +37,8 @@ export type GithubPullRequestsApi = {
     pageSize?: number;
     page?: number;
     branch?: string;
-  }) => Promise<PullsListResponseData>;
+  }) => Promise<{
+    maxTotalItems?: number;
+    pullRequestsData: PullsListResponseData;
+  }>;
 };

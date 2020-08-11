@@ -54,15 +54,25 @@ export function usePullRequests({
           page: page + 1,
           branch,
         })
-        .then((pullRequestsData: PullsListResponseData): PullRequest[] => {
-          setTotal(pullRequestsData.length);
-          return pullRequestsData.map(({ id, url, title, number }) => ({
-            url,
-            id,
-            number,
-            title,
-          }));
-        })
+        .then(
+          ({
+            maxTotalItems,
+            pullRequestsData,
+          }: {
+            maxTotalItems?: number;
+            pullRequestsData: PullsListResponseData;
+          }) => {
+            if (maxTotalItems) {
+              setTotal(maxTotalItems);
+            }
+            return pullRequestsData.map(({ id, html_url, title, number }) => ({
+              url: html_url,
+              id,
+              number,
+              title,
+            }));
+          },
+        )
     );
   }, [page, pageSize, repo, owner]);
 
