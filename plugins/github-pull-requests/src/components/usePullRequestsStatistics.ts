@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Spotify AB
+ * Copyright 2020 RoadieHQ
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,106 +13,102 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useState } from 'react';
 import { useAsyncRetry } from 'react-use';
 import { githubPullRequestsApiRef } from '../api/GithubPullRequestsApi';
 import { useApi, githubAuthApiRef } from '@backstage/core';
 import { PullsListResponseData } from '@octokit/types';
 
+import moment from 'moment';
+import { PullRequestState } from '../types';
+
 export type PullRequestStats = {
   avgTimeUntilMerge: string;
-  avgSizeInLines: string;
   mergedToClosedRatio: string;
 };
 
 export type PullRequestStatsCount = {
   avgTimeUntilMerge: number;
-  avgSizeInLines: number;
   closedCount: number;
   mergedCount: number;
 };
-
-export function usePullRequests({
+function calculateStatistics(pullRequestsData: PullsListResponseData) {
+  return pullRequestsData.reduce<PullRequestStatsCount>(
+    (acc, curr) => {
+      acc.avgTimeUntilMerge += curr.merged_at
+        ? new Date(curr.merged_at).getTime() -
+          new Date(curr.created_at).getTime()
+        : 0;
+      acc.mergedCount += curr.merged_at ? 1 : 0;
+      acc.closedCount += curr.closed_at ? 1 : 0;
+      return acc;
+    },
+    {
+      avgTimeUntilMerge: 0,
+      closedCount: 0,
+      mergedCount: 0,
+    },
+  );
+}
+export function usePullRequestsStatistics({
   owner,
   repo,
   branch,
+  pageSize,
+  state,
 }: {
   owner: string;
   repo: string;
   branch?: string;
+  pageSize: number;
+  state: PullRequestState;
 }) {
   const api = useApi(githubPullRequestsApiRef);
   const auth = useApi(githubAuthApiRef);
 
-  const [pageSize, setPageSize] = useState(100);
-
-  const { loading, value: statsData, retry, error } = useAsyncRetry<
+  const { loading, value: statsData, error } = useAsyncRetry<
     PullRequestStats
   >(async () => {
     const token = await auth.getAccessToken(['repo']);
     if (!repo) {
       return {
         avgTimeUntilMerge: '0 min',
-        avgSizeInLines: '0',
         mergedToClosedRatio: '0%',
       };
     }
-    return (
-      api
-        // GitHub API pagination count starts from 1
-        .listPullRequests({
-          token,
-          owner,
-          repo,
-          pageSize,
-          page: 1,
-          branch,
-        })
-        .then(
-          ({
-            pullRequestsData,
-          }: {
-            pullRequestsData: PullsListResponseData;
-          }) => {
-            //TODO: calculations
-            const calcResult = pullRequestsData.reduce<PullRequestStatsCount>(
-              (acc, curr) => {
-                return acc;
-              },
-              {
-                avgTimeUntilMerge: 0,
-                avgSizeInLines: 0,
-                closedCount: 0,
-                mergedCount: 4,
-              },
-            );
+    return api
+      .listPullRequests({
+        token,
+        owner,
+        repo,
+        pageSize,
+        page: 1,
+        branch,
+        state,
+      })
+      .then(
+        ({ pullRequestsData }: { pullRequestsData: PullsListResponseData }) => {
+          const calcResult = calculateStatistics(pullRequestsData);
+          const avgTimeUntilMergeDiff = moment.duration(
+            calcResult.avgTimeUntilMerge / calcResult.mergedCount,
+          );
 
-            return {
-              avgTimeUntilMerge: '7h 20m',
-              avgSizeInLines: `${Math.round(
-                calcResult.avgSizeInLines / pullRequestsData.length,
-              )}`,
-              mergedToClosedRatio: `${Math.round(
-                (calcResult.mergedCount / calcResult.closedCount) * 100,
-              )}%`,
-            };
-          },
-        )
-    );
+          const avgTimeUntilMerge = avgTimeUntilMergeDiff.humanize();
+          return {
+            avgTimeUntilMerge: avgTimeUntilMerge,
+            mergedToClosedRatio: `${Math.round(
+              (calcResult.mergedCount / calcResult.closedCount) * 100,
+            )}%`,
+          };
+        },
+      );
   }, [pageSize, repo, owner]);
 
   return [
     {
-      pageSize,
       loading,
       statsData,
       projectName: `${owner}/${repo}`,
       error,
-    },
-    {
-      statsData,
-      setPageSize,
-      retry,
     },
   ] as const;
 }

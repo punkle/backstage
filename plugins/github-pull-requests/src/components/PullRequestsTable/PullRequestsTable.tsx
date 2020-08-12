@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Spotify AB
+ * Copyright 2020 RoadieHQ
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React, { FC } from 'react';
-import { Typography, Box } from '@material-ui/core';
+import React, { FC, useState } from 'react';
+import { Typography, Box, Paper, ButtonGroup, Button } from '@material-ui/core';
 import GitHubIcon from '@material-ui/icons/GitHub';
 import { Table, TableColumn } from '@backstage/core';
 import { useEntityCompoundName } from '@backstage/plugin-catalog';
 import { useProjectName } from '../useProjectName';
-import { usePullRequests } from '../usePullRequests';
-
-export type PullRequest = {
-  id: number;
-  number: number;
-  url: string;
-  title: string;
-  updatedTime: string;
-  createdTime: string;
-  creatorNickname: string;
-  creatorProfileLink: string;
-};
+import { usePullRequests, PullRequest } from '../usePullRequests';
+import { PullRequestState } from '../../types';
 
 const generatedColumns: TableColumn[] = [
   {
@@ -99,6 +89,7 @@ type Props = {
   total: number;
   pageSize: number;
   onChangePageSize: (pageSize: number) => void;
+  StateFilterComponent: FC<{}>;
 };
 
 export const PullRequestsTableView: FC<Props> = ({
@@ -110,6 +101,7 @@ export const PullRequestsTableView: FC<Props> = ({
   onChangePage,
   onChangePageSize,
   total,
+  StateFilterComponent,
 }) => {
   return (
     <Table
@@ -122,11 +114,14 @@ export const PullRequestsTableView: FC<Props> = ({
       onChangePage={onChangePage}
       onChangeRowsPerPage={onChangePageSize}
       title={
-        <Box display="flex" alignItems="center">
-          <GitHubIcon />
-          <Box mr={1} />
-          <Typography variant="h6">{projectName}</Typography>
-        </Box>
+        <>
+          <Box display="flex" alignItems="center">
+            <GitHubIcon />
+            <Box mr={1} />
+            <Typography variant="h6">{projectName}</Typography>
+          </Box>
+          <StateFilterComponent />
+        </>
       }
       columns={generatedColumns}
     />
@@ -142,20 +137,53 @@ export const PullRequestsTable = () => {
       namespace: 'default',
     };
   }
-
+  const [PRStatusFilter, setPRStatusFilter] = useState<PullRequestState>(
+    'open',
+  );
   const { value: projectName, loading } = useProjectName(entityCompoundName);
   const [owner, repo] = (projectName ?? '/').split('/');
   const [tableProps, { retry, setPage, setPageSize }] = usePullRequests({
+    state: PRStatusFilter,
     owner,
     repo,
   });
+  const StateFilterComponent = () => (
+    <Paper>
+      <Box position="absolute" right={300} top={20}>
+        <ButtonGroup color="primary" aria-label="text primary button group">
+          <Button
+            color={PRStatusFilter === 'open' ? 'primary' : 'default'}
+            onClick={() => setPRStatusFilter('open')}
+          >
+            OPEN
+          </Button>
+          <Button
+            color={PRStatusFilter === 'closed' ? 'primary' : 'default'}
+            onClick={() => setPRStatusFilter('closed')}
+          >
+            CLOSED
+          </Button>
+          <Button
+            color={PRStatusFilter === 'all' ? 'primary' : 'default'}
+            onClick={() => setPRStatusFilter('all')}
+          >
+            ALL
+          </Button>
+        </ButtonGroup>
+      </Box>
+    </Paper>
+  );
+
   return (
-    <PullRequestsTableView
-      {...tableProps}
-      loading={loading || tableProps.loading}
-      retry={retry}
-      onChangePageSize={setPageSize}
-      onChangePage={setPage}
-    />
+    <>
+      <PullRequestsTableView
+        {...tableProps}
+        StateFilterComponent={StateFilterComponent}
+        loading={loading || tableProps.loading}
+        retry={retry}
+        onChangePageSize={setPageSize}
+        onChangePage={setPage}
+      />
+    </>
   );
 };

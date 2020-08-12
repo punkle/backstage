@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Spotify AB
+ * Copyright 2020 RoadieHQ
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ describe('ExampleFetchComponent', () => {
         loading={false}
         pageSize={10}
         page={0}
+        StateFilterComponent={() => <></>}
         prData={[]}
         retry={() => {}}
         onChangePage={() => {}}
@@ -48,12 +49,17 @@ describe('ExampleFetchComponent', () => {
           loading={false}
           pageSize={10}
           page={0}
+          StateFilterComponent={() => <></>}
           prData={[
             {
               id: 464572082,
               number: 1862,
               title: testTitle,
               url: 'https://api.github.com/repos/spotify/backstage/pulls/1862',
+              createdTime: '2 hours ago',
+              creatorNickname: 'dependabot-preview[bot]',
+              creatorProfileLink: 'https://github.com/apps/dependabot-preview',
+              updatedTime: '2 hours ago',
             },
           ]}
           retry={() => {}}

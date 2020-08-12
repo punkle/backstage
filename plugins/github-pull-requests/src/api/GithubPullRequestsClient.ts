@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Spotify AB
+ * Copyright 2020 RoadieHQ
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 import { GithubPullRequestsApi } from './GithubPullRequestsApi';
 import { Octokit } from '@octokit/rest';
 import { PullsListResponseData } from '@octokit/types';
+import { PullRequestState } from '../types';
 
 export class GithubPullRequestsClient implements GithubPullRequestsApi {
   async listPullRequests({
@@ -25,19 +26,21 @@ export class GithubPullRequestsClient implements GithubPullRequestsApi {
     repo,
     pageSize = 5,
     page,
+    state = 'all',
   }: {
     token: string;
     owner: string;
     repo: string;
     pageSize?: number;
     page?: number;
+    state?: PullRequestState;
   }): Promise<{
     maxTotalItems?: number;
     pullRequestsData: PullsListResponseData;
   }> {
     const pullRequestResponse = await new Octokit({ auth: token }).pulls.list({
       repo,
-      state: 'all',
+      state,
       per_page: pageSize,
       page,
       owner,

@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/camelcase */
 /*
- * Copyright 2020 Spotify AB
+ * Copyright 2020 RoadieHQ
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +14,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAsyncRetry } from 'react-use';
-import { PullRequest } from './PullRequestsTable/PullRequestsTable';
 import { githubPullRequestsApiRef } from '../api/GithubPullRequestsApi';
 import { useApi, githubAuthApiRef } from '@backstage/core';
 import { PullsListResponseData } from '@octokit/types';
 import moment from 'moment';
+import { PullRequestState } from '../types';
+
+export type PullRequest = {
+  id: number;
+  number: number;
+  url: string;
+  title: string;
+  updatedTime: string;
+  createdTime: string;
+  creatorNickname: string;
+  creatorProfileLink: string;
+};
 
 export function usePullRequests({
   owner,
   repo,
   branch,
+  state,
 }: {
   owner: string;
   repo: string;
   branch?: string;
+  state?: PullRequestState;
 }) {
   const api = useApi(githubPullRequestsApiRef);
   const auth = useApi(githubAuthApiRef);
@@ -57,6 +71,7 @@ export function usePullRequests({
           pageSize,
           page: page + 1,
           branch,
+          state,
         })
         .then(
           ({
@@ -94,7 +109,10 @@ export function usePullRequests({
         )
     );
   }, [page, pageSize, repo, owner]);
-
+  useEffect(() => {
+    retry();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
   return [
     {
       page,

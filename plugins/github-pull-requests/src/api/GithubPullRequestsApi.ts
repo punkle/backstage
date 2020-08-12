@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Spotify AB
+ * Copyright 2020 RoadieHQ
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 import { createApiRef } from '@backstage/core';
 import { PullsListResponseData } from '@octokit/types';
+import { PullRequestState } from '../types';
 
 export const githubPullRequestsApiRef = createApiRef<GithubPullRequestsApi>({
   id: 'plugin.githubpullrequests.service',
@@ -30,6 +31,7 @@ export type GithubPullRequestsApi = {
     pageSize,
     page,
     branch,
+    state,
   }: {
     token: string;
     owner: string;
@@ -37,6 +39,7 @@ export type GithubPullRequestsApi = {
     pageSize?: number;
     page?: number;
     branch?: string;
+    state?: PullRequestState;
   }) => Promise<{
     maxTotalItems?: number;
     pullRequestsData: PullsListResponseData;
