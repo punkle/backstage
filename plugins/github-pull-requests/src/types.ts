@@ -1,1 +1,1 @@
-export type PullRequestState = PullRequestState;
+export type PullRequestState = 'open' | 'closed' | 'all';
