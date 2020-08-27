@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
-export type Settings = { identityPoolId: string; region: string };
+export type Settings = {
+  identityPoolId: string;
+  region: string;
+  awsAccessKeyId: string;
+  awsAccessKeySecret: string;
+  authMethod: 'aws' | 'google';
+};
 export type SettingsState = Settings & {
   showSettings: boolean;
 };

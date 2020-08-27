@@ -22,6 +22,11 @@ import { useLambda } from '../useLambda';
 import { LambdaData } from '../../types';
 import { Settings } from '../Settings';
 import { AppContext, useSettings } from '../../state';
+import moment from 'moment';
+
+const getElapsedTime = (start: string) => {
+  return moment(start).fromNow();
+};
 
 const generatedColumns: TableColumn[] = [
   {
@@ -55,7 +60,7 @@ const generatedColumns: TableColumn[] = [
     width: '250px',
     render: (row: Partial<LambdaData>) => (
       <Typography variant="body2" noWrap>
-        {row.lastModifiedDate}
+        {getElapsedTime(row.lastModifiedDate!)}
       </Typography>
     ),
   },
@@ -98,7 +103,7 @@ const generatedColumns: TableColumn[] = [
 
       return (
         <a href={href} target="_blank">
-          <Button>logs</Button>
+          <Button>click</Button>
         </a>
       );
     },
@@ -168,6 +173,9 @@ export const AWSLambdaPageTable = () => {
     setPage(0); // lazy loading WIP
   }
   const [tableProps] = useLambda({
+    awsAccessKeyId: settings.awsAccessKeyId,
+    awsAccessKeySecret: settings.awsAccessKeySecret,
+    authMethod: settings.authMethod,
     identityPoolId: settings.identityPoolId,
     pageSize: 1,
     region: settings.region,

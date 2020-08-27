@@ -16,7 +16,7 @@
 
 import { plugin } from './plugin';
 
-describe('github-pull-requests', () => {
+describe('aws-lambda', () => {
   it('should export plugin', () => {
     expect(plugin).toBeDefined();
   });

@@ -19,11 +19,11 @@ import AWSLambdaPage from './components/AWSLambdaPage';
 
 export const rootRouteRef = createRouteRef({
   path: '/aws-lambda',
-  title: 'github-pull-requests',
+  title: 'AWS lambda function list',
 });
 export const projectRouteRef = createRouteRef({
   path: '/aws-lambda/:kind/:optionalNamespaceAndName',
-  title: 'GitHub Pull requests for project',
+  title: 'AWS lambda function list for project',
 });
 
 export const plugin = createPlugin({

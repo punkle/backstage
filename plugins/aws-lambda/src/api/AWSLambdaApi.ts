@@ -27,10 +27,16 @@ export type AwsLambdaApi = {
     googleIdToken,
     identityPoolId,
     awsRegion,
+    awsAccessKeyId,
+    awsAccessKeySecret,
+    authMethod,
   }: {
     googleIdToken: string;
     identityPoolId: string;
     awsRegion: string;
+    awsAccessKeyId: string;
+    awsAccessKeySecret: string;
+    authMethod: string;
   }) => Promise<{
     lambdaData: LambdaData[];
   }>;

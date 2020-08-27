@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useAsyncRetry } from 'react-use';
-import { useApi, googleAuthApiRef } from '@backstage/core';
+import { useApi, googleAuthApiRef, errorApiRef } from '@backstage/core';
 import { LambdaData } from '../types';
 import { awsLambdaApiRef } from '../api';
 
@@ -22,22 +22,41 @@ export function useLambda({
   region,
   identityPoolId,
   pageSize,
+  awsAccessKeyId,
+  awsAccessKeySecret,
+  authMethod,
 }: {
   region: string;
   identityPoolId: string;
   pageSize: number;
+  awsAccessKeyId: string;
+  awsAccessKeySecret: string;
+  authMethod: string;
 }) {
   const googleAuth = useApi(googleAuthApiRef);
   const lambdaApi = useApi(awsLambdaApiRef);
+  const errorApi = useApi(errorApiRef);
   const { loading, value: lambdaData, error, retry } = useAsyncRetry<
     LambdaData[]
   >(async () => {
+    if (!region) {
+      return [];
+    }
     const googleIdToken = await googleAuth.getIdToken();
-    const lambdaFunctions = await lambdaApi.listLambdas({
-      googleIdToken,
-      awsRegion: region,
-      identityPoolId,
-    });
+    try {
+      const lambdaFunctions = await lambdaApi.listLambdas({
+        googleIdToken,
+        awsRegion: region,
+        identityPoolId,
+        awsAccessKeyId,
+        awsAccessKeySecret,
+        authMethod,
+      });
+      return lambdaFunctions.lambdaData;
+    } catch (err) {
+      errorApi.post(err);
+      return [];
+    }
     // const FunctionName = (lambdas.$response.data! as any)?.Functions[0]
     //   .FunctionName;
     // const lambda = await lambdaApi
@@ -45,8 +64,6 @@ export function useLambda({
     //     FunctionName,
     //   })
     //   .promise();
-
-    return lambdaFunctions.lambdaData;
   }, [pageSize, region, identityPoolId]);
 
   return [

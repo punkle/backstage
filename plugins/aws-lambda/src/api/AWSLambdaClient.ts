@@ -18,24 +18,57 @@ import AWS from 'aws-sdk';
 import { AwsLambdaApi } from './AWSLambdaApi';
 import { LambdaData } from '../types';
 
+function generateCredentials({
+  googleIdToken,
+  identityPoolId,
+  awsAccessKeyId,
+  awsAccessKeySecret,
+  authMethod,
+}: {
+  googleIdToken: string;
+  identityPoolId: string;
+  awsAccessKeyId: string;
+  awsAccessKeySecret: string;
+  authMethod: string;
+}) {
+  if (authMethod === 'google') {
+    return new AWS.CognitoIdentityCredentials({
+      IdentityPoolId: identityPoolId,
+      Logins: {
+        'accounts.google.com': googleIdToken,
+      },
+    });
+  }
+  return new AWS.Credentials({
+    accessKeyId: awsAccessKeyId,
+    secretAccessKey: awsAccessKeySecret,
+  });
+}
 export class AwsLambdaClient implements AwsLambdaApi {
   async listLambdas({
     googleIdToken,
     identityPoolId,
     awsRegion,
+    awsAccessKeyId,
+    awsAccessKeySecret,
+    authMethod,
   }: {
     googleIdToken: string;
     identityPoolId: string;
     awsRegion: string;
+    awsAccessKeyId: string;
+    awsAccessKeySecret: string;
+    authMethod: string;
   }): Promise<{
     lambdaData: LambdaData[];
   }> {
     AWS.config.region = awsRegion;
-    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-      IdentityPoolId: identityPoolId,
-      Logins: {
-        'accounts.google.com': googleIdToken,
-      },
+    AWS.config.credentials = generateCredentials({
+      googleIdToken,
+      identityPoolId,
+      awsAccessKeyId,
+      awsAccessKeySecret,
+      authMethod,
     });
     const lambdaApi = new AWS.Lambda({});
     const lambdas = await lambdaApi.listFunctions({ MaxItems: 2 }).promise();

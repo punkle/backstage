@@ -23,14 +23,50 @@ import {
   Box,
   Dialog,
   DialogTitle,
+  Typography,
+  AppBar,
+  Tabs,
+  Tab,
 } from '@material-ui/core';
 import { useSettings } from '../../state';
 
+function a11yProps(index: number) {
+  return {
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`,
+  };
+}
+function TabPanel(props: {
+  children: React.ReactNode;
+  value: number;
+  index: number;
+}) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box p={3}>
+          <Typography>{children}</Typography>
+        </Box>
+      )}
+    </div>
+  );
+}
 const Settings = ({ repoName }: { repoName: string }) => {
   const [
     {
       identityPoolId: identityPoolIdFromStore,
       region: regionFromStore,
+      awsAccessKeyId: awsAccessKeyIdFromStore,
+      awsAccessKeySecret: awsAccessKeySecretFromStore,
+      authMethod: authMethodFromStore,
       showSettings,
     },
     { saveSettings, hideSettings },
@@ -40,6 +76,12 @@ const Settings = ({ repoName }: { repoName: string }) => {
     () => identityPoolIdFromStore,
   );
   const [region, setRegion] = useState(() => regionFromStore);
+  const [awsAccessKeyId, setAwsAccessKeyId] = useState(
+    () => awsAccessKeyIdFromStore,
+  );
+  const [awsAccessKeySecret, setAwsAccessKeySecret] = useState(
+    () => awsAccessKeySecretFromStore,
+  );
 
   useEffect(() => {
     if (identityPoolIdFromStore !== identityPoolId) {
@@ -48,7 +90,19 @@ const Settings = ({ repoName }: { repoName: string }) => {
     if (regionFromStore !== region) {
       setRegion(region);
     }
-  }, [regionFromStore, identityPoolIdFromStore, identityPoolId, region]);
+  }, [
+    regionFromStore,
+    identityPoolIdFromStore,
+    authMethodFromStore,
+    identityPoolId,
+    authMethodFromStore,
+    region,
+  ]);
+  const [value, setValue] = useState(authMethodFromStore === 'aws' ? 1 : 0);
+
+  const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
+    setValue(newValue);
+  };
 
   const [saved, setSaved] = useState(false);
   return (
@@ -67,10 +121,20 @@ const Settings = ({ repoName }: { repoName: string }) => {
           {/* {authed ? <StatusOK /> : <StatusFailed />} */}
         </DialogTitle>
         <Box minWidth="400px">
-          <List>
+          <AppBar position="static">
+            <Tabs
+              value={value}
+              onChange={handleChange}
+              aria-label="simple tabs example"
+            >
+              <Tab label="GOOGLE SIGN IN" {...a11yProps(0)} />
+              <Tab label="AWS API KEYS" {...a11yProps(1)} />
+            </Tabs>
+          </AppBar>
+          <TabPanel value={value} index={0}>
             <ListItem>
               <TextField
-                name="circleci-identityPoolId"
+                name="aws-identityPoolId"
                 fullWidth
                 label="Identity Pool Id"
                 variant="outlined"
@@ -79,24 +143,63 @@ const Settings = ({ repoName }: { repoName: string }) => {
               />
             </ListItem>
             <ListItem>
+              <Box height="55px" />
+            </ListItem>
+          </TabPanel>
+          <TabPanel value={value} index={1}>
+            <ListItem>
               <TextField
-                name="circleci-region"
-                label="AWS Region"
+                name="aws-access-key-id"
+                label="AWS Access Key Id"
                 fullWidth
                 variant="outlined"
-                value={region}
-                onChange={e => setRegion(e.target.value)}
+                value={awsAccessKeyId}
+                onChange={e => setAwsAccessKeyId(e.target.value)}
               />
+            </ListItem>
+
+            <ListItem>
+              <TextField
+                name="aws-secret-access-key"
+                label="AWS Secret Access Key"
+                fullWidth
+                variant="outlined"
+                value={awsAccessKeySecret}
+                onChange={e => setAwsAccessKeySecret(e.target.value)}
+              />
+            </ListItem>
+          </TabPanel>
+          <List>
+            <ListItem>
+              <Typography variant="body2" noWrap />
+            </ListItem>
+            <ListItem>
+              <Box paddingLeft="30px">
+                <TextField
+                  name="aws-region"
+                  label="AWS Region"
+                  fullWidth
+                  variant="outlined"
+                  value={region}
+                  onChange={e => setRegion(e.target.value)}
+                />
+              </Box>
             </ListItem>
             <ListItem>
               <Box mt={2} display="flex" width="100%" justifyContent="center">
                 <Button
-                  data-testid="github-auth-button"
+                  data-testid="aws-auth-button"
                   variant="outlined"
                   color="primary"
                   onClick={() => {
                     setSaved(true);
-                    saveSettings({ identityPoolId, region });
+                    saveSettings({
+                      identityPoolId,
+                      region,
+                      awsAccessKeyId,
+                      awsAccessKeySecret,
+                      authMethod: value === 0 ? 'google' : 'aws',
+                    });
                     hideSettings();
                   }}
                 >

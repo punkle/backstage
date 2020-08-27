@@ -32,14 +32,14 @@ const AWSLambdaPage: FC<{}> = () => (
   <AppStateProvider>
     <Page theme={pageTheme.tool}>
       <Header
-        title="Welcome to github-pull-requests!"
+        title="Welcome to AWS lambda plugin!"
         subtitle="Optional subtitle"
       >
         <HeaderLabel label="Owner" value="Team X" />
         <HeaderLabel label="Lifecycle" value="Alpha" />
       </Header>
       <Content>
-        <ContentHeader title="Pull requests plugin">
+        <ContentHeader title="AWS lambda plugin">
           <SupportButton>
             Plugin to show a project's AWS lambda functions
           </SupportButton>

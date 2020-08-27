@@ -26,6 +26,9 @@ const initialState: State = {
   region: '',
   identityPoolId: '',
   showSettings: false,
+  authMethod: 'aws',
+  awsAccessKeyId: '',
+  awsAccessKeySecret: '',
 };
 
 const reducer: Reducer<State, Action> = (state, action) => {
