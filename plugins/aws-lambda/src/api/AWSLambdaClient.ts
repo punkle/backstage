@@ -17,6 +17,7 @@
 import AWS from 'aws-sdk';
 import { AwsLambdaApi } from './AWSLambdaApi';
 import { LambdaData } from '../types';
+import { FunctionList } from 'aws-sdk/clients/lambda';
 
 function generateCredentials({
   googleIdToken,
@@ -71,10 +72,20 @@ export class AwsLambdaClient implements AwsLambdaApi {
       authMethod,
     });
     const lambdaApi = new AWS.Lambda({});
-    const lambdas = await lambdaApi.listFunctions({ MaxItems: 2 }).promise();
+    const lambdas: FunctionList = [];
+    let resp = null;
+    do {
+      resp = await lambdaApi
+        .listFunctions({
+          MaxItems: 50,
+          Marker: (resp && resp.NextMarker) ?? undefined,
+        })
+        .promise();
+      lambdas.push(...resp.Functions!);
+    } while (resp && resp.NextMarker);
 
     const lambdaData =
-      (lambdas.$response.data! as any)?.Functions.map(
+      lambdas.map(
         (v: any) =>
           ({
             codeSize: v.CodeSize,

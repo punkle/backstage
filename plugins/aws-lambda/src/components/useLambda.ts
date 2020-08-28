@@ -21,14 +21,12 @@ import { awsLambdaApiRef } from '../api';
 export function useLambda({
   region,
   identityPoolId,
-  pageSize,
   awsAccessKeyId,
   awsAccessKeySecret,
   authMethod,
 }: {
   region: string;
   identityPoolId: string;
-  pageSize: number;
   awsAccessKeyId: string;
   awsAccessKeySecret: string;
   authMethod: string;
@@ -64,7 +62,7 @@ export function useLambda({
     //     FunctionName,
     //   })
     //   .promise();
-  }, [pageSize, region, identityPoolId]);
+  }, [region, identityPoolId]);
 
   return [
     {

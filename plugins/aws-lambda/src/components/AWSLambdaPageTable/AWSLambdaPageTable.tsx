@@ -80,7 +80,7 @@ const generatedColumns: TableColumn[] = [
     highlight: true,
     render: (row: Partial<LambdaData>) => (
       <Typography variant="body2" noWrap>
-        {row.codeSize}
+        {row?.codeSize ? (Math.round(row.codeSize / 100) * 100) / 1000 : 0} MB
       </Typography>
     ),
   },
@@ -113,32 +113,35 @@ const generatedColumns: TableColumn[] = [
 type Props = {
   loading: boolean;
   retry: () => void;
-  // projectName: string;
-  // page: number;
+  page: number;
   lambdaData?: LambdaData[];
   onChangePage: (page: number) => void;
-  // total: number;
+  total: number;
   pageSize: number;
   onChangePageSize: (pageSize: number) => void;
 };
 
 export const AWSLambdaTableView: FC<Props> = ({
-  // projectName,
   loading,
   pageSize,
-  // page,
+  page,
   lambdaData,
   onChangePage,
   onChangePageSize,
-  // total,
+  total,
 }) => {
   return (
     <Table
       isLoading={loading}
-      options={{ paging: true, pageSize, padding: 'dense' }}
-      totalCount={10}
-      page={1}
-      actions={[]}
+      options={{
+        paging: true,
+        pageSize,
+
+        padding: 'dense',
+        paginationType: 'normal',
+      }}
+      totalCount={total}
+      page={page}
       data={lambdaData ?? []}
       onChangePage={onChangePage}
       onChangeRowsPerPage={onChangePageSize}
@@ -148,7 +151,6 @@ export const AWSLambdaTableView: FC<Props> = ({
             <GitHubIcon />
             <Box mr={1} />
             <Typography variant="h6">Test project</Typography>
-            {/* <Typography variant="h6">{projectName}</Typography> */}
           </Box>
         </>
       }
@@ -160,6 +162,7 @@ export const AWSLambdaTableView: FC<Props> = ({
 export const AWSLambdaPageTable = () => {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(5);
+  const [filteredRows, setFilteredRows] = useState<LambdaData[]>([]);
   let entityCompoundName = useEntityCompoundName();
   if (!entityCompoundName.name) {
     entityCompoundName = {
@@ -169,21 +172,33 @@ export const AWSLambdaPageTable = () => {
     };
   }
   const [settings, dispatch] = useContext(AppContext);
-  if (page > 0) {
-    setPage(0); // lazy loading WIP
-  }
+
   const [tableProps] = useLambda({
     awsAccessKeyId: settings.awsAccessKeyId,
     awsAccessKeySecret: settings.awsAccessKeySecret,
     authMethod: settings.authMethod,
     identityPoolId: settings.identityPoolId,
-    pageSize: 1,
     region: settings.region,
   });
+
   useSettings(entityCompoundName.name);
   useEffect(() => {
     tableProps.retry();
-  }, [settings.identityPoolId, settings.region]); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    settings.identityPoolId,
+    settings.region,
+    settings.authMethod,
+    settings.awsAccessKeyId,
+    settings.awsAccessKeySecret,
+  ]);
+
+  useEffect(() => {
+    setFilteredRows(
+      tableProps.lambdaData?.slice(page * pageSize, (page + 1) * pageSize) ??
+        [],
+    );
+  }, [tableProps.lambdaData, page, pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -199,6 +214,9 @@ export const AWSLambdaPageTable = () => {
       {settings.showSettings && <Settings repoName={entityCompoundName.name} />}
       <AWSLambdaTableView
         {...tableProps}
+        lambdaData={filteredRows}
+        page={page}
+        total={tableProps.lambdaData?.length ?? 0}
         pageSize={pageSize}
         loading={tableProps.loading || tableProps.loading}
         retry={tableProps.retry}
