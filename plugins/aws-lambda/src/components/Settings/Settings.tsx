@@ -101,7 +101,9 @@ const Settings = ({ repoName }: { repoName: string }) => {
   const [value, setValue] = useState(authMethodFromStore === 'aws' ? 1 : 0);
 
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
-    setValue(newValue);
+    if (event) {
+      setValue(newValue);
+    }
   };
 
   const [saved, setSaved] = useState(false);
