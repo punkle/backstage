@@ -13,51 +13,61 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React, { FC, useContext, useEffect, useState } from 'react';
-import { Typography, Box, Button } from '@material-ui/core';
-import GitHubIcon from '@material-ui/icons/GitHub';
+import React, { useContext, useEffect, useState } from 'react';
+import { Typography, Box, Button, Link } from '@material-ui/core';
 import { Table, TableColumn } from '@backstage/core';
 import { useEntityCompoundName } from '@backstage/plugin-catalog';
-import { useLambda } from '../useLambda';
-import { FunctionData } from '../../types';
-import { Settings } from '../Settings';
-import { AppContext, useSettings } from '../../state';
+import { useFirebaseFunctions } from './useFirebaseFunctions';
+import { FunctionData } from '../types';
+import Settings from './Settings';
+import { AppContext, useSettings } from '../state';
 import moment from 'moment';
 
 const getElapsedTime = (start: string) => {
   return moment(start).fromNow();
 };
 
-const generatedColumns: TableColumn[] = [
+const columnDefinitions: TableColumn[] = [
   {
     title: 'Name',
     field: 'name',
-    width: '150px',
     render: (row: Partial<FunctionData>) => {
-      const href = `https://console.cloud.google.com/functions/details/${row.region}/${row.name}?project=${row.project}`;
       return (
         <Box fontWeight="fontWeightBold">
-          <a target="_blank" href={href}>
+          <Link
+            target="_blank"
+            href={`https://console.cloud.google.com/functions/details/${row.region}/${row.name}?project=${row.project}`}
+          >
             {row.name}
-          </a>
+          </Link>
         </Box>
       );
     },
   },
   {
-    title: 'Description',
-    field: 'description',
-    highlight: true,
+    title: 'Status',
+    field: 'status',
+    width: '150px',
     render: (row: Partial<FunctionData>) => (
       <Typography variant="body2" noWrap>
-        {row.description}
+        {row.status!}
+      </Typography>
+    ),
+  },
+  {
+    title: 'Region',
+    field: 'region',
+    width: '150px',
+    render: (row: Partial<FunctionData>) => (
+      <Typography variant="body2" noWrap>
+        {row.region!}
       </Typography>
     ),
   },
   {
     title: 'Last modified',
     field: 'updateTime',
-    width: '250px',
+    width: '150px',
     render: (row: Partial<FunctionData>) => (
       <Typography variant="body2" noWrap>
         {getElapsedTime(row.updateTime!)}
@@ -67,7 +77,7 @@ const generatedColumns: TableColumn[] = [
   {
     title: 'Runtime',
     field: 'runtime',
-    highlight: true,
+    width: '150px',
     render: (row: Partial<FunctionData>) => (
       <Typography variant="body2" noWrap>
         {row.runtime}
@@ -77,7 +87,7 @@ const generatedColumns: TableColumn[] = [
   {
     title: 'Memory',
     field: 'availableMemoryMb',
-    highlight: true,
+    width: '150px',
     render: (row: Partial<FunctionData>) => (
       <Typography variant="body2" noWrap>
         {row.availableMemoryMb} MB
@@ -87,69 +97,21 @@ const generatedColumns: TableColumn[] = [
   {
     title: 'Logs',
     field: '',
-    highlight: true,
+    width: '150px',
     render: (row: Partial<FunctionData>) => {
-      const href = `${row.name}`;
-
       return (
-        <a href={href} target="_blank">
-          <Button>click</Button>
-        </a>
+        <Link
+          href={`https://console.cloud.google.com/logs/viewer?project=${row.project}&resource=cloud_function%2Ffunction_name%2F${row.name}%2Fregion%2F${row.region}`}
+          target="_blank"
+        >
+          view logs
+        </Link>
       );
     },
   },
 ];
 
-type Props = {
-  loading: boolean;
-  retry: () => void;
-  page: number;
-  lambdaData?: FunctionData[];
-  onChangePage: (page: number) => void;
-  total: number;
-  pageSize: number;
-  onChangePageSize: (pageSize: number) => void;
-};
-
-const FirebaseFunctionsTableView: FC<Props> = ({
-  loading,
-  pageSize,
-  page,
-  lambdaData,
-  onChangePage,
-  onChangePageSize,
-  total,
-}) => {
-  return (
-    <Table
-      isLoading={loading}
-      options={{
-        paging: true,
-        pageSize,
-
-        padding: 'dense',
-        paginationType: 'normal',
-      }}
-      totalCount={total}
-      page={page}
-      data={lambdaData ?? []}
-      onChangePage={onChangePage}
-      onChangeRowsPerPage={onChangePageSize}
-      title={
-        <>
-          <Box display="flex" alignItems="center">
-            <GitHubIcon />
-            <Box mr={1} />
-            <Typography variant="h6">Test project</Typography>
-          </Box>
-        </>
-      }
-      columns={generatedColumns}
-    />
-  );
-};
-
-export const FirebaseFunctionsPageTable = () => {
+export const FirebaseFunctionsPageTable: React.FC = () => {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(5);
   const [filteredRows, setFilteredRows] = useState<FunctionData[]>([]);
@@ -162,17 +124,16 @@ export const FirebaseFunctionsPageTable = () => {
     };
   }
   const [settings, dispatch] = useContext(AppContext);
-  const [tableProps] = useLambda({
-    region: 'us-central1',
-    project: 'backstage-test-project',
-    authMethod: 'OAuth2',
+  const [tableProps] = useFirebaseFunctions({
+    project: settings.project,
+    authMethod: settings.authMethod,
   });
 
   useSettings(entityCompoundName.name);
   useEffect(() => {
     tableProps.retry();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.region, settings.authMethod, settings.project]);
+  }, [settings.authMethod, settings.project]);
 
   useEffect(() => {
     setFilteredRows(
@@ -193,19 +154,30 @@ export const FirebaseFunctionsPageTable = () => {
         Settings
       </Button>
       {settings.showSettings && <Settings repoName={entityCompoundName.name} />}
-      <FirebaseFunctionsTableView
-        {...tableProps}
-        lambdaData={filteredRows}
+      <Table
+        isLoading={tableProps.loading || tableProps.loading}
+        options={{
+          paging: true,
+          pageSize,
+
+          padding: 'dense',
+          paginationType: 'normal',
+        }}
+        totalCount={tableProps.functionsData?.length ?? 0}
         page={page}
-        total={tableProps.functionsData?.length ?? 0}
-        pageSize={pageSize}
-        loading={tableProps.loading || tableProps.loading}
-        retry={tableProps.retry}
-        onChangePageSize={setPageSize}
+        data={filteredRows ?? []}
         onChangePage={setPage}
+        onChangeRowsPerPage={setPageSize}
+        title={
+          <>
+            <Box display="flex" alignItems="center">
+              <Box mr={1} />
+              <Typography variant="h6">{settings.project}</Typography>
+            </Box>
+          </>
+        }
+        columns={columnDefinitions}
       />
     </>
   );
 };
-
-export default FirebaseFunctionsTableView;

@@ -19,13 +19,11 @@ import { FunctionData } from '../types';
 import { firebaseFunctionsApiRef } from '../api';
 import { AuthMethod } from '../state/types';
 
-export function useLambda({
+export function useFirebaseFunctions({
   authMethod,
-  region,
   project,
 }: {
   authMethod: AuthMethod;
-  region: string;
   project: string;
 }) {
   const googleAuth = useApi(googleAuthApiRef);
@@ -34,10 +32,6 @@ export function useLambda({
   const { loading, value: functionsData, error, retry } = useAsyncRetry<
     FunctionData[]
   >(async () => {
-    if (!region) {
-      errorApi.post(new Error('Region not set'));
-      return [];
-    }
     const googleIdToken = await googleAuth.getAccessToken([
       'https://www.googleapis.com/auth/cloud-platform',
     ]);
@@ -46,14 +40,13 @@ export function useLambda({
         authMethod,
         googleIdToken,
         project,
-        region,
       });
       return firebaseFunctions.functionData;
     } catch (err) {
       errorApi.post(err);
       return [];
     }
-  }, [region, project]);
+  }, [project]);
 
   return [
     {

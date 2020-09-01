@@ -36,7 +36,7 @@ export function useSettings(repoName: string) {
           )
         )
           dispatch({
-            type: 'setCredentials',
+            type: 'setSettings',
             payload: stateFromStorage,
           });
       } catch (error) {
@@ -57,7 +57,7 @@ export function useSettings(repoName: string) {
       saveSettings: (state: Settings) => {
         persist(state);
         dispatch({
-          type: 'setCredentials',
+          type: 'setSettings',
           payload: state,
         });
       },

@@ -23,15 +23,18 @@ export const firebaseFunctionsApiRef = createApiRef<FirebaseFunctionsApi>({
   description: 'Used by the firebase functions plugin to make requests',
 });
 
-export type ListLambdasType = (input: {
+export type ListFunctionsArgs = {
   googleIdToken: string;
   project: string;
-  region: string;
   authMethod: AuthMethod;
-}) => Promise<{
+};
+
+export type ListFunctionsType = (
+  input: ListFunctionsArgs,
+) => Promise<{
   functionData: FunctionData[];
 }>;
 
 export type FirebaseFunctionsApi = {
-  listFunctions: ListLambdasType;
+  listFunctions: ListFunctionsType;
 };

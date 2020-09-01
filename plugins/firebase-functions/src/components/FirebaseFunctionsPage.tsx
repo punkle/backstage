@@ -25,8 +25,8 @@ import {
   HeaderLabel,
   SupportButton,
 } from '@backstage/core';
-import { AppStateProvider } from '../../state';
-import { FirebaseFunctionsPageTable } from '../FirebaseFunctionsPageTable';
+import { AppStateProvider } from '../state';
+import { FirebaseFunctionsPageTable } from './FirebaseFunctionsPageTable';
 
 const FirebaseFunctionsPage: React.FC = () => (
   <AppStateProvider>

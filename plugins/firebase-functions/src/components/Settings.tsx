@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 RoadieHQ
+ * Copyright 2020 Spotify AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,4 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { FirebaseFunctionsPageTable } from './FirebaseFunctionsPageTable';
+import React from 'react';
+
+type Props = {
+  repoName: string;
+};
+
+const Settings: React.FC<Props> = ({ repoName }: Props) => {
+  return <div>{repoName}</div>;
+};
+
+export default Settings;

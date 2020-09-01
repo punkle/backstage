@@ -15,7 +15,4 @@
  */
 
 export { plugin } from './plugin';
-export {
-  firebaseFunctionsApiRef as awsLambdaApiRef,
-  FirebaseFunctionsClient as AwsLambdaClient,
-} from './api/index';
+export { firebaseFunctionsApiRef, FirebaseFunctionsClient } from './api/index';

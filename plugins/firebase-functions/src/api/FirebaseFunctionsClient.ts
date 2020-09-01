@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-import { FirebaseFunctionsApi } from './firebaseFunctionsApi';
+import {
+  FirebaseFunctionsApi,
+  ListFunctionsArgs,
+} from './firebaseFunctionsApi';
 import { FunctionData } from '../types';
-import { AuthMethod } from '../state/types';
 
 class FetchError extends Error {
   get name(): string {
@@ -42,14 +44,8 @@ export class FirebaseFunctionsClient implements FirebaseFunctionsApi {
   async listFunctions({
     googleIdToken,
     project,
-    region,
     authMethod,
-  }: {
-    googleIdToken: string;
-    project: string;
-    region: string;
-    authMethod: AuthMethod;
-  }) {
+  }: ListFunctionsArgs) {
     if (authMethod === 'API_KEY') {
       return { functionData: [] as FunctionData[] };
     }
@@ -72,14 +68,14 @@ export class FirebaseFunctionsClient implements FirebaseFunctionsApi {
       fetchedData.map(
         (r: any) =>
           ({
-            name: r.name,
-            description: r.description,
+            name: r.name.split('/').pop(),
+            urlTrigger: r.httpsTrigger!.url,
             status: r.status,
             updateTime: r.updateTime,
             runtime: r.runtime,
             availableMemoryMb: r.availableMemoryMb,
             project: project,
-            region,
+            region: r.name.split('/').slice(-3)[0],
           } as FunctionData),
       ) || [];
     return { functionData };

@@ -15,23 +15,23 @@
  */
 import React, { FC, useReducer, Dispatch, Reducer } from 'react';
 import { firebaseFunctionsApiRef } from '../api';
-import { State, Action } from './types';
+import { State, SettingsAction } from './types';
 
-export const AppContext = React.createContext<[State, Dispatch<Action>]>(
-  [] as any,
-);
+export const AppContext = React.createContext<
+  [State, Dispatch<SettingsAction>]
+>([] as any);
 export const STORAGE_KEY = `${firebaseFunctionsApiRef.id}.settings`;
 
+// TODO: Change to empty
 const initialState: State = {
-  region: '',
-  project: '',
+  project: 'backstage-test-project',
   showSettings: false,
   authMethod: 'OAuth2',
 };
 
-const reducer: Reducer<State, Action> = (state, action) => {
+const reducer: Reducer<State, SettingsAction> = (state, action) => {
   switch (action.type) {
-    case 'setCredentials':
+    case 'setSettings':
       return {
         ...state,
         ...action.payload,

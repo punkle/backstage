@@ -18,25 +18,17 @@ export type AuthMethod = 'OAuth2' | 'API_KEY';
 
 export type Settings = {
   project: string;
-  region: string;
   authMethod: AuthMethod;
 };
-export type SettingsState = Settings & {
+
+export type State = Settings & {
   showSettings: boolean;
 };
 
-export type State = SettingsState;
-
-type SettingsAction =
+export type SettingsAction =
   | {
-      type: 'setCredentials';
-      payload: {
-        project: string;
-        region: string;
-        authMethod: AuthMethod;
-      };
+      type: 'setSettings';
+      payload: Settings;
     }
   | { type: 'showSettings' }
   | { type: 'hideSettings' };
-
-export type Action = SettingsAction;
