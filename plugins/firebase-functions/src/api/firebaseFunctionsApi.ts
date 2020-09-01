@@ -16,28 +16,22 @@
 
 import { createApiRef } from '@backstage/core';
 import { FunctionData } from '../types';
+import { AuthMethod } from '../state/types';
 
-export const awsLambdaApiRef = createApiRef<AwsLambdaApi>({
-  id: 'plugin.awslambda.service',
-  description: 'Used by the AWS lambda plugin to make requests',
+export const firebaseFunctionsApiRef = createApiRef<FirebaseFunctionsApi>({
+  id: 'plugin.firebasefunctions.service',
+  description: 'Used by the firebase functions plugin to make requests',
 });
 
-export type AwsLambdaApi = {
-  listLambdas: ({
-    googleIdToken,
-    identityPoolId,
-    awsRegion,
-    awsAccessKeyId,
-    awsAccessKeySecret,
-    authMethod,
-  }: {
-    googleIdToken: string;
-    identityPoolId: string;
-    awsRegion: string;
-    awsAccessKeyId: string;
-    awsAccessKeySecret: string;
-    authMethod: string;
-  }) => Promise<{
-    lambdaData: FunctionData[];
-  }>;
+export type ListLambdasType = (input: {
+  googleIdToken: string;
+  project: string;
+  region: string;
+  authMethod: AuthMethod;
+}) => Promise<{
+  functionData: FunctionData[];
+}>;
+
+export type FirebaseFunctionsApi = {
+  listFunctions: ListLambdasType;
 };

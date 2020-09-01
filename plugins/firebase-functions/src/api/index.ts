@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 
-export * from './AWSLambdaApi';
-export * from './AWSLambdaClient';
+export * from './firebaseFunctionsApi';
+export * from './FirebaseFunctionsClient';

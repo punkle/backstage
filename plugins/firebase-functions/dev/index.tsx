@@ -16,15 +16,15 @@
 
 import { createDevApp } from '@backstage/dev-utils';
 import { CatalogClient, catalogApiRef } from '@backstage/plugin-catalog';
-import { awsLambdaApiRef, AwsLambdaClient } from '../src/api';
+import { firebaseFunctionsApiRef, FirebaseFunctionsClient } from '../src/api';
 import { plugin } from '../src/plugin';
 
 createDevApp()
   .registerPlugin(plugin)
   .registerApiFactory({
     deps: {},
-    factory: () => new AwsLambdaClient(),
-    implements: awsLambdaApiRef,
+    factory: () => new FirebaseFunctionsClient(),
+    implements: firebaseFunctionsApiRef,
   })
   .registerApiFactory({
     deps: {},

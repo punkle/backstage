@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 import React, { FC, useReducer, Dispatch, Reducer } from 'react';
-import { awsLambdaApiRef } from '../api';
+import { firebaseFunctionsApiRef } from '../api';
 import { State, Action } from './types';
 
 export const AppContext = React.createContext<[State, Dispatch<Action>]>(
   [] as any,
 );
-export const STORAGE_KEY = `${awsLambdaApiRef.id}.settings`;
+export const STORAGE_KEY = `${firebaseFunctionsApiRef.id}.settings`;
 
 const initialState: State = {
   region: '',
-  identityPoolId: '',
+  project: '',
   showSettings: false,
-  authMethod: 'aws',
-  awsAccessKeyId: '',
-  awsAccessKeySecret: '',
+  authMethod: 'OAuth2',
 };
 
 const reducer: Reducer<State, Action> = (state, action) => {

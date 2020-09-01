@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
+export type AuthMethod = 'OAuth2' | 'API_KEY';
+
 export type Settings = {
-  identityPoolId: string;
+  project: string;
   region: string;
-  awsAccessKeyId: string;
-  awsAccessKeySecret: string;
-  authMethod: 'aws' | 'google';
+  authMethod: AuthMethod;
 };
 export type SettingsState = Settings & {
   showSettings: boolean;
@@ -31,8 +31,9 @@ type SettingsAction =
   | {
       type: 'setCredentials';
       payload: {
-        identityPoolId: string;
+        project: string;
         region: string;
+        authMethod: AuthMethod;
       };
     }
   | { type: 'showSettings' }

@@ -16,58 +16,49 @@
 import { useAsyncRetry } from 'react-use';
 import { useApi, googleAuthApiRef, errorApiRef } from '@backstage/core';
 import { FunctionData } from '../types';
-import { awsLambdaApiRef } from '../api';
+import { firebaseFunctionsApiRef } from '../api';
+import { AuthMethod } from '../state/types';
 
 export function useLambda({
-  region,
-  identityPoolId,
-  awsAccessKeyId,
-  awsAccessKeySecret,
   authMethod,
+  region,
+  project,
 }: {
+  authMethod: AuthMethod;
   region: string;
-  identityPoolId: string;
-  awsAccessKeyId: string;
-  awsAccessKeySecret: string;
-  authMethod: string;
+  project: string;
 }) {
   const googleAuth = useApi(googleAuthApiRef);
-  const lambdaApi = useApi(awsLambdaApiRef);
+  const firebaseFunctionsApi = useApi(firebaseFunctionsApiRef);
   const errorApi = useApi(errorApiRef);
-  const { loading, value: lambdaData, error, retry } = useAsyncRetry<
+  const { loading, value: functionsData, error, retry } = useAsyncRetry<
     FunctionData[]
   >(async () => {
     if (!region) {
+      errorApi.post(new Error('Region not set'));
       return [];
     }
-    const googleIdToken = await googleAuth.getIdToken();
+    const googleIdToken = await googleAuth.getAccessToken([
+      'https://www.googleapis.com/auth/cloud-platform',
+    ]);
     try {
-      const lambdaFunctions = await lambdaApi.listLambdas({
-        googleIdToken,
-        awsRegion: region,
-        identityPoolId,
-        awsAccessKeyId,
-        awsAccessKeySecret,
+      const firebaseFunctions = await firebaseFunctionsApi.listFunctions({
         authMethod,
+        googleIdToken,
+        project,
+        region,
       });
-      return lambdaFunctions.lambdaData;
+      return firebaseFunctions.functionData;
     } catch (err) {
       errorApi.post(err);
       return [];
     }
-    // const FunctionName = (lambdas.$response.data! as any)?.Functions[0]
-    //   .FunctionName;
-    // const lambda = await lambdaApi
-    //   .getFunction({
-    //     FunctionName,
-    //   })
-    //   .promise();
-  }, [region, identityPoolId]);
+  }, [region, project]);
 
   return [
     {
       loading,
-      lambdaData,
+      functionsData,
       error,
       retry,
     },

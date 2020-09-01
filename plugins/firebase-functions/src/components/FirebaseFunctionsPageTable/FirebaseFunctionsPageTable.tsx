@@ -149,7 +149,7 @@ const FirebaseFunctionsTableView: FC<Props> = ({
   );
 };
 
-export const AWSLambdaPageTable = () => {
+export const FirebaseFunctionsPageTable = () => {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(5);
   const [filteredRows, setFilteredRows] = useState<FunctionData[]>([]);
@@ -162,33 +162,24 @@ export const AWSLambdaPageTable = () => {
     };
   }
   const [settings, dispatch] = useContext(AppContext);
-
   const [tableProps] = useLambda({
-    awsAccessKeyId: settings.awsAccessKeyId,
-    awsAccessKeySecret: settings.awsAccessKeySecret,
-    authMethod: settings.authMethod,
-    identityPoolId: settings.identityPoolId,
-    region: settings.region,
+    region: 'us-central1',
+    project: 'backstage-test-project',
+    authMethod: 'OAuth2',
   });
 
   useSettings(entityCompoundName.name);
   useEffect(() => {
     tableProps.retry();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    settings.identityPoolId,
-    settings.region,
-    settings.authMethod,
-    settings.awsAccessKeyId,
-    settings.awsAccessKeySecret,
-  ]);
+  }, [settings.region, settings.authMethod, settings.project]);
 
   useEffect(() => {
     setFilteredRows(
-      tableProps.lambdaData?.slice(page * pageSize, (page + 1) * pageSize) ??
+      tableProps.functionsData?.slice(page * pageSize, (page + 1) * pageSize) ??
         [],
     );
-  }, [tableProps.lambdaData, page, pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tableProps.functionsData, page, pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -206,7 +197,7 @@ export const AWSLambdaPageTable = () => {
         {...tableProps}
         lambdaData={filteredRows}
         page={page}
-        total={tableProps.lambdaData?.length ?? 0}
+        total={tableProps.functionsData?.length ?? 0}
         pageSize={pageSize}
         loading={tableProps.loading || tableProps.loading}
         retry={tableProps.retry}
