@@ -23,7 +23,10 @@ export const useProjectName = (name: EntityCompoundName) => {
 
   const { value, loading, error } = useAsync(async () => {
     const entity = await catalogApi.getEntityByName(name);
-    return entity?.metadata.annotations?.['github.com/project-slug'] ?? '';
+    return (
+      entity?.metadata.annotations?.['backstage.io/aws-lambda']?.split(',') ??
+      []
+    );
   });
   return { value, loading, error };
 };

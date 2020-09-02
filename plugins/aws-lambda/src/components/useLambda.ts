@@ -38,9 +38,14 @@ export function useLambda({
     LambdaData[]
   >(async () => {
     if (!region) {
+      errorApi.post(
+        new Error('Please use settings button to set credentials and region'),
+      );
       return [];
     }
-    const googleIdToken = await googleAuth.getIdToken();
+
+    const googleIdToken =
+      authMethod === 'google' ? await googleAuth.getIdToken() : '';
     try {
       const lambdaFunctions = await lambdaApi.listLambdas({
         googleIdToken,
@@ -55,13 +60,6 @@ export function useLambda({
       errorApi.post(err);
       return [];
     }
-    // const FunctionName = (lambdas.$response.data! as any)?.Functions[0]
-    //   .FunctionName;
-    // const lambda = await lambdaApi
-    //   .getFunction({
-    //     FunctionName,
-    //   })
-    //   .promise();
   }, [region, identityPoolId]);
 
   return [

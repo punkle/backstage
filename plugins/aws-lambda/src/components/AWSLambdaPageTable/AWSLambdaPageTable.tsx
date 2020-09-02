@@ -23,6 +23,7 @@ import { LambdaData } from '../../types';
 import { Settings } from '../Settings';
 import { AppContext, useSettings } from '../../state';
 import moment from 'moment';
+import { useProjectName } from '../useProjectName';
 
 const getElapsedTime = (start: string) => {
   return moment(start).fromNow();
@@ -165,6 +166,18 @@ export const AWSLambdaPageTable = () => {
   const [filteredRows, setFilteredRows] = useState<LambdaData[]>([]);
   let entityCompoundName = useEntityCompoundName();
   if (!entityCompoundName.name) {
+    // TODO(shmidt-i): remove when is fully integrated
+    // into the entity view
+    entityCompoundName = {
+      kind: 'Component',
+      name: 'backstage',
+      namespace: 'default',
+    };
+  }
+  const { value: lambdaAnnotationList, loading } = useProjectName(
+    entityCompoundName,
+  );
+  if (!entityCompoundName.name) {
     entityCompoundName = {
       kind: 'Component',
       name: 'backstage',
@@ -195,10 +208,15 @@ export const AWSLambdaPageTable = () => {
 
   useEffect(() => {
     setFilteredRows(
-      tableProps.lambdaData?.slice(page * pageSize, (page + 1) * pageSize) ??
-        [],
+      tableProps.lambdaData
+        ?.filter(v =>
+          lambdaAnnotationList?.length
+            ? lambdaAnnotationList.includes(v.functionName)
+            : true,
+        )
+        .slice(page * pageSize, (page + 1) * pageSize) ?? [],
     );
-  }, [tableProps.lambdaData, page, pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tableProps.lambdaData, page, pageSize, lambdaAnnotationList]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
