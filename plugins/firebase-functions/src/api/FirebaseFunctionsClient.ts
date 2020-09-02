@@ -45,21 +45,25 @@ export class FirebaseFunctionsClient implements FirebaseFunctionsApi {
     googleIdToken,
     project,
     authMethod,
+    apiKey,
   }: ListFunctionsArgs) {
+    let url = `https://cloudfunctions.googleapis.com/v1/projects/${project}/locations/-/functions?pageSize=20`;
+    const init = {
+      method: 'get',
+    } as RequestInit;
     if (authMethod === 'API_KEY') {
-      return { functionData: [] as FunctionData[] };
+      url += `&key=${apiKey}`;
+    } else if (authMethod === 'OAuth2') {
+      init.headers = new Headers({
+        Authorization: `Bearer ${googleIdToken}`,
+      });
     }
     const fetchedData = [] as any[];
     let resp = null;
     do {
       resp = await fetch<{ functions: FunctionData[]; nextPageToken: string }>(
-        `https://cloudfunctions.googleapis.com/v1/projects/${project}/locations/-/functions?pageSize=20`,
-        {
-          method: 'get',
-          headers: new Headers({
-            Authorization: `Bearer ${googleIdToken}`,
-          }),
-        },
+        url,
+        init,
       );
       fetchedData.push(...resp.functions!);
     } while (resp && resp.nextPageToken);

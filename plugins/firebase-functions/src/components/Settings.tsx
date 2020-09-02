@@ -107,10 +107,7 @@ const Settings: React.FC = () => {
                 />
               </RadioGroup>
             </FormControl>
-            <Collapse
-              in={authMethod === 'API_KEY'}
-              style={{ marginTop: authMethod === 'API_KEY' ? '-16px' : 0 }}
-            >
+            <Collapse in={authMethod === 'API_KEY'} style={{ marginTop: 0 }}>
               <TextField
                 name="apiKey"
                 fullWidth

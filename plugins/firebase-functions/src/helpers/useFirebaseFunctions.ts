@@ -22,9 +22,11 @@ import { AuthMethod } from './ContextProvider';
 export function useFirebaseFunctions({
   authMethod,
   project,
+  apiKey,
 }: {
   authMethod: AuthMethod;
   project: string;
+  apiKey: string;
 }) {
   const googleAuth = useApi(googleAuthApiRef);
   const firebaseFunctionsApi = useApi(firebaseFunctionsApiRef);
@@ -44,6 +46,7 @@ export function useFirebaseFunctions({
         authMethod,
         googleIdToken,
         project,
+        apiKey,
       });
       return firebaseFunctions.functionData;
     } catch (err) {

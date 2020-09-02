@@ -27,6 +27,7 @@ export type ListFunctionsArgs = {
   googleIdToken: string;
   project: string;
   authMethod: AuthMethod;
+  apiKey: string;
 };
 
 export type ListFunctionsType = (

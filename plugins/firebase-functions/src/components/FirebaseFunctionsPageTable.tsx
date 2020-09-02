@@ -125,6 +125,7 @@ export const FirebaseFunctionsPageTable: React.FC = () => {
   const [tableProps] = useFirebaseFunctions({
     project: settings.project,
     authMethod: settings.authMethod,
+    apiKey: settings.apiKey,
   });
 
   useEffect(() => {
