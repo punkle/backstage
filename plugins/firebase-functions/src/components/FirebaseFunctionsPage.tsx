@@ -25,33 +25,41 @@ import {
   HeaderLabel,
   SupportButton,
 } from '@backstage/core';
-import { AppStateProvider } from '../state';
-import { FirebaseFunctionsPageTable } from './FirebaseFunctionsPageTable';
 
-const FirebaseFunctionsPage: React.FC = () => (
-  <AppStateProvider>
-    <Page theme={pageTheme.tool}>
-      <Header
-        title="Firebase functions plugin"
-        subtitle="manage firebase functions"
-      >
-        <HeaderLabel label="Owner" value="Roadie" />
-        <HeaderLabel label="Lifecycle" value="Alpha" />
-      </Header>
-      <Content>
-        <ContentHeader title="Firebase functions plugin">
-          <SupportButton>
-            Plugin to show a project's firebase functions
-          </SupportButton>
-        </ContentHeader>
-        <Grid container spacing={3} direction="column">
-          <Grid item>
-            <FirebaseFunctionsPageTable />
+import { FirebaseFunctionsPageTable } from './FirebaseFunctionsPageTable';
+import Settings from './Settings';
+import { ContextProvider } from '../helpers/ContextProvider';
+
+const FirebaseFunctionsPage: React.FC = () => {
+  return (
+    <ContextProvider>
+      <Page theme={pageTheme.tool}>
+        <Header
+          title="Firebase functions plugin"
+          subtitle="manage firebase functions"
+        >
+          <HeaderLabel label="Owner" value="Roadie" />
+          <HeaderLabel label="Lifecycle" value="Alpha" />
+        </Header>
+        <Content>
+          <ContentHeader title="Firebase functions plugin">
+            <SupportButton>
+              Plugin to show a project's firebase functions
+            </SupportButton>
+          </ContentHeader>
+          <Grid container spacing={3} direction="column">
+            <Grid item>
+              <Settings />
+            </Grid>
+
+            <Grid item>
+              <FirebaseFunctionsPageTable />
+            </Grid>
           </Grid>
-        </Grid>
-      </Content>
-    </Page>
-  </AppStateProvider>
-);
+        </Content>
+      </Page>
+    </ContextProvider>
+  );
+};
 
 export default FirebaseFunctionsPage;

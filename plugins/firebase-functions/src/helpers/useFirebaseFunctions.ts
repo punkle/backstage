@@ -17,7 +17,7 @@ import { useAsyncRetry } from 'react-use';
 import { useApi, googleAuthApiRef, errorApiRef } from '@backstage/core';
 import { FunctionData } from '../types';
 import { firebaseFunctionsApiRef } from '../api';
-import { AuthMethod } from '../state/types';
+import { AuthMethod } from './ContextProvider';
 
 export function useFirebaseFunctions({
   authMethod,
@@ -32,6 +32,10 @@ export function useFirebaseFunctions({
   const { loading, value: functionsData, error, retry } = useAsyncRetry<
     FunctionData[]
   >(async () => {
+    // TODO: handle message about wrong project name
+    if (!project) {
+      return [];
+    }
     const googleIdToken = await googleAuth.getAccessToken([
       'https://www.googleapis.com/auth/cloud-platform',
     ]);

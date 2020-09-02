@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Typography,
   Box,
-  Button,
   Link,
   Table as MuiTable,
   TableRow,
@@ -25,12 +24,10 @@ import {
   TableBody,
 } from '@material-ui/core';
 import { Table, TableColumn } from '@backstage/core';
-import { useEntityCompoundName } from '@backstage/plugin-catalog';
-import { useFirebaseFunctions } from './useFirebaseFunctions';
+import { useFirebaseFunctions } from '../helpers/useFirebaseFunctions';
 import { FunctionData } from '../types';
-import Settings from './Settings';
-import { AppContext, useSettings } from '../state';
 import moment from 'moment';
+import { useSettings } from '../helpers/ContextProvider';
 
 const getElapsedTime = (start: string) => {
   return moment(start).fromNow();
@@ -124,21 +121,12 @@ export const FirebaseFunctionsPageTable: React.FC = () => {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(5);
   const [filteredRows, setFilteredRows] = useState<FunctionData[]>([]);
-  let entityCompoundName = useEntityCompoundName();
-  if (!entityCompoundName.name) {
-    entityCompoundName = {
-      kind: 'Component',
-      name: 'backstage',
-      namespace: 'default',
-    };
-  }
-  const [settings, dispatch] = useContext(AppContext);
+  const [settings] = useSettings();
   const [tableProps] = useFirebaseFunctions({
     project: settings.project,
     authMethod: settings.authMethod,
   });
 
-  useSettings(entityCompoundName.name);
   useEffect(() => {
     tableProps.retry();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -152,81 +140,65 @@ export const FirebaseFunctionsPageTable: React.FC = () => {
   }, [tableProps.functionsData, page, pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <>
-      <Button
-        onClick={() =>
-          dispatch({
-            type: 'showSettings',
-          })
-        }
-      >
-        Settings
-      </Button>
-      {settings.showSettings && <Settings repoName={entityCompoundName.name} />}
-      <Table
-        isLoading={tableProps.loading || tableProps.loading}
-        options={{
-          paging: true,
-          pageSize,
+    <Table
+      isLoading={tableProps.loading || tableProps.loading}
+      options={{
+        paging: true,
+        pageSize,
 
-          padding: 'dense',
-          paginationType: 'normal',
-        }}
-        totalCount={tableProps.functionsData?.length ?? 0}
-        page={page}
-        data={filteredRows ?? []}
-        onChangePage={setPage}
-        onChangeRowsPerPage={setPageSize}
-        title={
-          <>
-            <Box display="flex" alignItems="center">
-              <Box mr={1} />
-              <Typography variant="h6">{settings.project}</Typography>
+        padding: 'dense',
+        paginationType: 'normal',
+      }}
+      totalCount={tableProps.functionsData?.length ?? 0}
+      page={page}
+      data={filteredRows ?? []}
+      onChangePage={setPage}
+      onChangeRowsPerPage={setPageSize}
+      title={
+        <>
+          <Box display="flex" alignItems="center">
+            <Box mr={1} />
+            <Typography variant="h6">{settings.project}</Typography>
+          </Box>
+        </>
+      }
+      columns={columnDefinitions}
+      detailPanel={(rowData: FunctionData) => {
+        return (
+          <Box display="flex" p={1}>
+            <Box p={1} maxWidth="50%">
+              <Typography>Env variables:</Typography>
+              <MuiTable size="small" aria-label="env-variables">
+                <TableBody>
+                  {rowData.envVariables
+                    ? Object.entries(rowData.envVariables).map(entry => (
+                        <TableRow key={entry[0]}>
+                          <TableCell>{entry[0]}</TableCell>
+                          <TableCell>{entry[1]}</TableCell>
+                        </TableRow>
+                      ))
+                    : 'no env variables found'}
+                </TableBody>
+              </MuiTable>
             </Box>
-          </>
-        }
-        columns={columnDefinitions}
-        detailPanel={(rowData: FunctionData) => {
-          return (
-            <Box display="flex" padding={1}>
-              <Box p={1} maxWidth="50%">
-                <Typography>Env variables:</Typography>
-                <MuiTable size="small" aria-label="env-variables">
-                  <TableBody>
-                    {rowData.envVariables
-                      ? Object.entries(rowData.envVariables).map(entry => (
-                          <TableRow key={entry[0]}>
-                            <TableCell component="th" scope="row">
-                              {entry[0]}
-                            </TableCell>
-                            <TableCell>{entry[1]}</TableCell>
-                          </TableRow>
-                        ))
-                      : 'no env variables found'}
-                  </TableBody>
-                </MuiTable>
-              </Box>
-              <Box p={1} maxWidth="50%">
-                <Typography>labels:</Typography>
-                <MuiTable size="small" aria-label="labels">
-                  <TableBody>
-                    {rowData.envVariables
-                      ? Object.entries(rowData.labels).map(entry => (
-                          <TableRow key={entry[0]}>
-                            <TableCell component="th" scope="row">
-                              {entry[0]}
-                            </TableCell>
-                            <TableCell>{entry[1]}</TableCell>
-                          </TableRow>
-                        ))
-                      : 'no labels found'}
-                  </TableBody>
-                </MuiTable>
-              </Box>
+            <Box p={1} maxWidth="50%">
+              <Typography>labels:</Typography>
+              <MuiTable size="small" aria-label="labels">
+                <TableBody>
+                  {rowData.envVariables
+                    ? Object.entries(rowData.labels).map(entry => (
+                        <TableRow key={entry[0]}>
+                          <TableCell>{entry[0]}</TableCell>
+                          <TableCell>{entry[1]}</TableCell>
+                        </TableRow>
+                      ))
+                    : 'no labels found'}
+                </TableBody>
+              </MuiTable>
             </Box>
-          );
-        }}
-      />
-    </>
+          </Box>
+        );
+      }}
+    />
   );
 };
