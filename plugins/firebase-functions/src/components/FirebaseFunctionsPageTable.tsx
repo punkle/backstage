@@ -14,7 +14,16 @@
  * limitations under the License.
  */
 import React, { useContext, useEffect, useState } from 'react';
-import { Typography, Box, Button, Link } from '@material-ui/core';
+import {
+  Typography,
+  Box,
+  Button,
+  Link,
+  Table as MuiTable,
+  TableRow,
+  TableCell,
+  TableBody,
+} from '@material-ui/core';
 import { Table, TableColumn } from '@backstage/core';
 import { useEntityCompoundName } from '@backstage/plugin-catalog';
 import { useFirebaseFunctions } from './useFirebaseFunctions';
@@ -27,7 +36,7 @@ const getElapsedTime = (start: string) => {
   return moment(start).fromNow();
 };
 
-const columnDefinitions: TableColumn[] = [
+const columnDefinitions: TableColumn<FunctionData>[] = [
   {
     title: 'Name',
     field: 'name',
@@ -177,6 +186,46 @@ export const FirebaseFunctionsPageTable: React.FC = () => {
           </>
         }
         columns={columnDefinitions}
+        detailPanel={(rowData: FunctionData) => {
+          return (
+            <Box display="flex" padding={1}>
+              <Box p={1} maxWidth="50%">
+                <Typography>Env variables:</Typography>
+                <MuiTable size="small" aria-label="env-variables">
+                  <TableBody>
+                    {rowData.envVariables
+                      ? Object.entries(rowData.envVariables).map(entry => (
+                          <TableRow key={entry[0]}>
+                            <TableCell component="th" scope="row">
+                              {entry[0]}
+                            </TableCell>
+                            <TableCell>{entry[1]}</TableCell>
+                          </TableRow>
+                        ))
+                      : 'no env variables found'}
+                  </TableBody>
+                </MuiTable>
+              </Box>
+              <Box p={1} maxWidth="50%">
+                <Typography>labels:</Typography>
+                <MuiTable size="small" aria-label="labels">
+                  <TableBody>
+                    {rowData.envVariables
+                      ? Object.entries(rowData.labels).map(entry => (
+                          <TableRow key={entry[0]}>
+                            <TableCell component="th" scope="row">
+                              {entry[0]}
+                            </TableCell>
+                            <TableCell>{entry[1]}</TableCell>
+                          </TableRow>
+                        ))
+                      : 'no labels found'}
+                  </TableBody>
+                </MuiTable>
+              </Box>
+            </Box>
+          );
+        }}
       />
     </>
   );

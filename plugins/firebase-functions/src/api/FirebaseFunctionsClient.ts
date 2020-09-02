@@ -76,6 +76,8 @@ export class FirebaseFunctionsClient implements FirebaseFunctionsApi {
             availableMemoryMb: r.availableMemoryMb,
             project: project,
             region: r.name.split('/').slice(-3)[0],
+            labels: r.labels,
+            envVariables: r.environmentVariables,
           } as FunctionData),
       ) || [];
     return { functionData };
