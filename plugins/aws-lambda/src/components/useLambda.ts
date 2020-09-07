@@ -17,14 +17,17 @@ import { useAsyncRetry } from 'react-use';
 import { useApi, googleAuthApiRef, errorApiRef } from '@backstage/core';
 import { LambdaData } from '../types';
 import { awsLambdaApiRef } from '../api';
+import { useEffect } from 'react';
 
 export function useLambda({
+  isLoading,
   region,
   identityPoolId,
   awsAccessKeyId,
   awsAccessKeySecret,
   authMethod,
 }: {
+  isLoading: boolean;
   region: string;
   identityPoolId: string;
   awsAccessKeyId: string;
@@ -34,15 +37,19 @@ export function useLambda({
   const googleAuth = useApi(googleAuthApiRef);
   const lambdaApi = useApi(awsLambdaApiRef);
   const errorApi = useApi(errorApiRef);
+
   const { loading, value: lambdaData, error, retry } = useAsyncRetry<
     LambdaData[]
   >(async () => {
-    if (!region) {
-      errorApi.post(
-        new Error('Please use settings button to set credentials and region'),
-      );
+    if (loading || !region || !identityPoolId || !awsAccessKeyId) {
       return [];
     }
+    // if () {
+    //   errorApi.post(
+    //     new Error('Please use settings button to set credentials and region'),
+    //   );
+    //   return [];
+    // }
 
     const googleIdToken =
       authMethod === 'google' ? await googleAuth.getIdToken() : '';
@@ -61,6 +68,12 @@ export function useLambda({
       return [];
     }
   }, [region, identityPoolId]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      retry();
+    }
+  }, [isLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return [
     {

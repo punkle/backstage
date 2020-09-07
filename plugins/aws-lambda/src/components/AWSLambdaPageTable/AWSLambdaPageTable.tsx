@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 import React, { FC, useContext, useEffect, useState } from 'react';
-import { Typography, Box, Button } from '@material-ui/core';
+import { Typography, Box, Button, Paper } from '@material-ui/core';
 import GitHubIcon from '@material-ui/icons/GitHub';
 import { Table, TableColumn } from '@backstage/core';
 import { useEntityCompoundName } from '@backstage/plugin-catalog';
+import SettingsIcon from '@material-ui/icons/Settings';
 import { useLambda } from '../useLambda';
 import { LambdaData } from '../../types';
 import { Settings } from '../Settings';
 import { AppContext, useSettings } from '../../state';
 import moment from 'moment';
 import { useProjectName } from '../useProjectName';
+import SimpleBanner from '../useBanner';
 
 const getElapsedTime = (start: string) => {
   return moment(start).fromNow();
@@ -33,7 +35,7 @@ const generatedColumns: TableColumn[] = [
   {
     title: 'Function Name',
     field: 'functionName',
-    width: '150px',
+    width: '300px',
     render: (row: Partial<LambdaData>) => {
       const href = `https://console.aws.amazon.com/lambda/home?region=${row.region}#/functions/${row.functionName}`;
       return (
@@ -104,7 +106,7 @@ const generatedColumns: TableColumn[] = [
 
       return (
         <a href={href} target="_blank">
-          <Button>click</Button>
+          <Button>Logs</Button>
         </a>
       );
     },
@@ -112,7 +114,9 @@ const generatedColumns: TableColumn[] = [
 ];
 
 type Props = {
+  SettingsComponent: FC<{}>;
   loading: boolean;
+  projectName: string;
   retry: () => void;
   page: number;
   lambdaData?: LambdaData[];
@@ -123,6 +127,8 @@ type Props = {
 };
 
 export const AWSLambdaTableView: FC<Props> = ({
+  SettingsComponent,
+  projectName,
   loading,
   pageSize,
   page,
@@ -151,7 +157,8 @@ export const AWSLambdaTableView: FC<Props> = ({
           <Box display="flex" alignItems="center">
             <GitHubIcon />
             <Box mr={1} />
-            <Typography variant="h6">Test project</Typography>
+            <Typography variant="h6">{projectName}</Typography>
+            <SettingsComponent />
           </Box>
         </>
       }
@@ -174,9 +181,11 @@ export const AWSLambdaPageTable = () => {
       namespace: 'default',
     };
   }
-  const { value: lambdaAnnotationList, loading } = useProjectName(
-    entityCompoundName,
-  );
+  const {
+    lambdaNames: lambdaAnnotationList,
+    value: projectName,
+    loading,
+  } = useProjectName(entityCompoundName);
   if (!entityCompoundName.name) {
     entityCompoundName = {
       kind: 'Component',
@@ -186,7 +195,10 @@ export const AWSLambdaPageTable = () => {
   }
   const [settings, dispatch] = useContext(AppContext);
 
+  useSettings(entityCompoundName.name);
+
   const [tableProps] = useLambda({
+    isLoading: loading,
     awsAccessKeyId: settings.awsAccessKeyId,
     awsAccessKeySecret: settings.awsAccessKeySecret,
     authMethod: settings.authMethod,
@@ -194,7 +206,6 @@ export const AWSLambdaPageTable = () => {
     region: settings.region,
   });
 
-  useSettings(entityCompoundName.name);
   useEffect(() => {
     tableProps.retry();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -218,20 +229,48 @@ export const AWSLambdaPageTable = () => {
     );
   }, [tableProps.lambdaData, page, pageSize, lambdaAnnotationList]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const SettingsComponent = () => (
+    <Paper>
+      <Box position="absolute" right={300} top={20}>
+        <Button
+          color="primary"
+          variant="contained"
+          onClick={() =>
+            dispatch({
+              type: 'showSettings',
+            })
+          }
+        >
+          <Box
+            display="flex"
+            alignItems="space-around"
+            justifyContent="space-around"
+            width="103px"
+          >
+            <SettingsIcon />
+            Settings
+          </Box>
+        </Button>
+      </Box>
+    </Paper>
+  );
   return (
     <>
-      <Button
-        onClick={() =>
-          dispatch({
-            type: 'showSettings',
-          })
+      <SimpleBanner
+        onButtonClick={() => dispatch({ type: 'showSettings' })}
+        isVisible={
+          !loading &&
+          (!settings.region ||
+            !settings.identityPoolId ||
+            !settings.awsAccessKeyId)
         }
-      >
-        Settings
-      </Button>
+      />
+
       {settings.showSettings && <Settings repoName={entityCompoundName.name} />}
       <AWSLambdaTableView
         {...tableProps}
+        projectName={projectName}
+        SettingsComponent={SettingsComponent}
         lambdaData={filteredRows}
         page={page}
         total={tableProps.lambdaData?.length ?? 0}

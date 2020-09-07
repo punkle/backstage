@@ -165,6 +165,7 @@ const Settings = ({ repoName }: { repoName: string }) => {
                 name="aws-secret-access-key"
                 label="AWS Secret Access Key"
                 fullWidth
+                type="password"
                 variant="outlined"
                 value={awsAccessKeySecret}
                 onChange={e => setAwsAccessKeySecret(e.target.value)}
