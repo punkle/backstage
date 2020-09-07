@@ -44,12 +44,6 @@ export function useLambda({
     if (loading || !region || !identityPoolId || !awsAccessKeyId) {
       return [];
     }
-    // if () {
-    //   errorApi.post(
-    //     new Error('Please use settings button to set credentials and region'),
-    //   );
-    //   return [];
-    // }
 
     const googleIdToken =
       authMethod === 'google' ? await googleAuth.getIdToken() : '';
