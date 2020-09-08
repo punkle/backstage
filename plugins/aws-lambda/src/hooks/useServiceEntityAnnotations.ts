@@ -18,7 +18,7 @@ import { useAsync } from 'react-use';
 import { catalogApiRef, EntityCompoundName } from '@backstage/plugin-catalog';
 import { useApi } from '@backstage/core';
 
-export const useProjectName = (name: EntityCompoundName) => {
+export const useServiceEntityAnnotations = (name: EntityCompoundName) => {
   const catalogApi = useApi(catalogApiRef);
 
   const { value, loading, error } = useAsync(async () => {

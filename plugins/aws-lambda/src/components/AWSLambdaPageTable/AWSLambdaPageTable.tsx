@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 import React, { FC, useContext, useEffect, useState } from 'react';
-import { Typography, Box, Button, Paper } from '@material-ui/core';
+import { Typography, Box, Button } from '@material-ui/core';
 import GitHubIcon from '@material-ui/icons/GitHub';
 import { Table, TableColumn } from '@backstage/core';
 import { useEntityCompoundName } from '@backstage/plugin-catalog';
-import SettingsIcon from '@material-ui/icons/Settings';
-import { useLambda } from '../useLambda';
+import { useLambda } from '../../hooks/useLambda';
 import { LambdaData } from '../../types';
 import { Settings } from '../Settings';
 import { AppContext, useSettings } from '../../state';
 import moment from 'moment';
-import { useProjectName } from '../useProjectName';
-import SimpleBanner from '../useBanner';
+import { useServiceEntityAnnotations } from '../../hooks/useServiceEntityAnnotations';
+import SimpleBanner from '../SimpleBanner';
+import { SettingsComponent } from '../Settings/SettingsButton';
 
 const getElapsedTime = (start: string) => {
   return moment(start).fromNow();
@@ -114,7 +114,6 @@ const generatedColumns: TableColumn[] = [
 ];
 
 type Props = {
-  SettingsComponent: FC<{}>;
   loading: boolean;
   projectName: string;
   retry: () => void;
@@ -127,7 +126,6 @@ type Props = {
 };
 
 export const AWSLambdaTableView: FC<Props> = ({
-  SettingsComponent,
   projectName,
   loading,
   pageSize,
@@ -185,7 +183,7 @@ export const AWSLambdaPageTable = () => {
     lambdaNames: lambdaAnnotationList,
     value: projectName,
     loading,
-  } = useProjectName(entityCompoundName);
+  } = useServiceEntityAnnotations(entityCompoundName);
   if (!entityCompoundName.name) {
     entityCompoundName = {
       kind: 'Component',
@@ -229,31 +227,6 @@ export const AWSLambdaPageTable = () => {
     );
   }, [tableProps.lambdaData, page, pageSize, lambdaAnnotationList]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const SettingsComponent = () => (
-    <Paper>
-      <Box position="absolute" right={300} top={20}>
-        <Button
-          color="primary"
-          variant="contained"
-          onClick={() =>
-            dispatch({
-              type: 'showSettings',
-            })
-          }
-        >
-          <Box
-            display="flex"
-            alignItems="space-around"
-            justifyContent="space-around"
-            width="103px"
-          >
-            <SettingsIcon />
-            Settings
-          </Box>
-        </Button>
-      </Box>
-    </Paper>
-  );
   return (
     <>
       <SimpleBanner
@@ -270,7 +243,6 @@ export const AWSLambdaPageTable = () => {
       <AWSLambdaTableView
         {...tableProps}
         projectName={projectName}
-        SettingsComponent={SettingsComponent}
         lambdaData={filteredRows}
         page={page}
         total={tableProps.lambdaData?.length ?? 0}
