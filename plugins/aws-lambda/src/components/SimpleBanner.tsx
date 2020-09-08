@@ -21,7 +21,7 @@ export default function SimpleBanner({
     setOpen(false);
     onButtonClick();
   };
-  const handleClose = (event: SyntheticEvent | MouseEvent, reason?: string) => {
+  const handleClose = (_: SyntheticEvent | MouseEvent, reason?: string) => {
     if (reason === 'clickaway') {
       return;
     }

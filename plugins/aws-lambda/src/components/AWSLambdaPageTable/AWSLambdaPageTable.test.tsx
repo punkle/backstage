@@ -24,6 +24,7 @@ describe('PullRequestTable', () => {
     mockFetch.mockResponse(() => new Promise(() => {}));
     const rendered = render(
       <AWSLambdaTableView
+        projectName="test"
         page={0}
         total={1}
         lambdaData={[]}
@@ -44,6 +45,7 @@ describe('PullRequestTable', () => {
     const rendered = render(
       <>
         <AWSLambdaTableView
+          projectName="test"
           page={0}
           total={1}
           lambdaData={[

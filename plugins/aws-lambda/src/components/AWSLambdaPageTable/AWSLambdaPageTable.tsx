@@ -242,7 +242,7 @@ export const AWSLambdaPageTable = () => {
       {settings.showSettings && <Settings repoName={entityCompoundName.name} />}
       <AWSLambdaTableView
         {...tableProps}
-        projectName={projectName}
+        projectName={projectName!}
         lambdaData={filteredRows}
         page={page}
         total={tableProps.lambdaData?.length ?? 0}
