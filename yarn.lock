@@ -3593,7 +3593,7 @@
   resolved "https://registry.npmjs.org/@rjsf/material-ui/-/material-ui-2.3.0.tgz#a051eb4db2ad778e39933a31ba806f415dd3ba90"
   integrity sha512-v/xZ4Xk18ZgBARcCe99IDqdO97GU0UC784gG8PhGGFDdy5Rbdy7ixTjHkGYttkr43PB7SX6ttohNhkKSW4nATQ==
 
-"@roadiehq/backstage-plugin-github-pull-requests@0.3.0":
+"@roadiehq/backstage-plugin-github-pull-requests@^0.3.0":
   version "0.3.0"
   resolved "https://registry.npmjs.org/@roadiehq/backstage-plugin-github-pull-requests/-/backstage-plugin-github-pull-requests-0.3.0.tgz#465cb74b1dab6f34a5a5bf4fa57b6c1d312bc5b7"
   integrity sha512-nSyMh8p3SAYj1yj5/+Po82g7aZwF5pWb+fh7bLPdf+ywl5pa+aKQxAVNCvlvgfN2WZ9gDTMbCPyWDgCfeJ/V9g==
