@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import {
+  TravisCIWidget,
   Router as TravisCiRouter,
   isPluginApplicableToEntity as isTravisCiAvailable,
 } from '@roadiehq/backstage-plugin-travis-ci';
@@ -67,12 +68,17 @@ const CICDSwitcher = ({ entity }: { entity: Entity }) => {
 
 const OverviewContent = ({ entity }: { entity: Entity }) => (
   <Grid container spacing={3}>
-    <Grid item>
+    <Grid item sm={4}>
       <AboutCard entity={entity} />
     </Grid>
     {isJenkinsAvailable(entity) && (
       <Grid item sm={4}>
         <JenkinsLatestRunCard branch="master" />
+      </Grid>
+    )}
+    {isTravisCiAvailable(entity) && (
+      <Grid item sm={4}>
+        <TravisCIWidget entity={entity} />
       </Grid>
     )}
   </Grid>
