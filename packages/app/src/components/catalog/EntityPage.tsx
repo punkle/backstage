@@ -77,7 +77,7 @@ const OverviewContent = ({ entity }: { entity: Entity }) => (
       </Grid>
     )}
     {isTravisCiAvailable(entity) && (
-      <Grid item sm={4}>
+      <Grid item sm={6}>
         <TravisCIWidget entity={entity} />
       </Grid>
     )}
