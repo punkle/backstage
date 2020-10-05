@@ -30,6 +30,7 @@ import { Router as ApiDocsRouter } from '@backstage/plugin-api-docs';
 import { Router as SentryRouter } from '@backstage/plugin-sentry';
 import { EmbeddedDocsRouter as DocsRouter } from '@backstage/plugin-techdocs';
 import { Router as KubernetesRouter } from '@backstage/plugin-kubernetes';
+import { Router as GitHubInsightsRouter } from '@backstage/plugin-github-insights';
 import React from 'react';
 import {
   AboutCard,
@@ -104,6 +105,11 @@ const ServiceEntityPage = ({ entity }: { entity: Entity }) => (
       path="/kubernetes/*"
       title="Kubernetes"
       element={<KubernetesRouter entity={entity} />}
+    />
+    <EntityPageLayout.Content
+      path="/github-insights"
+      title="GitHub Insights"
+      element={<GitHubInsightsRouter entity={entity} />}
     />
   </EntityPageLayout>
 );
