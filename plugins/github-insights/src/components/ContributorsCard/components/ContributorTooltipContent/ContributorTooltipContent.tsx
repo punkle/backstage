@@ -20,6 +20,8 @@ import {
   Grid,
   Typography,
   Divider,
+  Link,
+  Box,
 } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import { Progress } from '@backstage/core';
@@ -30,9 +32,6 @@ import { ContributorData } from '../../types';
 const useStyles = makeStyles(theme => ({
   contributorsTooltipContainer: {
     padding: theme.spacing(1, 0),
-    '& hr': {
-      margin: '15px 0',
-    },
   },
 }));
 
@@ -68,8 +67,17 @@ const ContributorTooltipContent: FC<ContributorTooltipContentProps> = ({
       <Grid item xs={12} sm={10}>
         <Grid item xs={12}>
           <Typography variant="h6">
-            {value.name}
-            <Typography variant="caption"> {value.login}</Typography>
+            <Link
+              href={`https://github.com/${value.login}`}
+              color="inherit"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {value.name}
+            </Link>
+            <Box component="span" ml={2}>
+              <Typography variant="caption">{value.login}</Typography>
+            </Box>
           </Typography>
         </Grid>
         {value.bio && (
@@ -79,7 +87,9 @@ const ContributorTooltipContent: FC<ContributorTooltipContentProps> = ({
         )}
         {value.location && (
           <Grid item xs={12}>
-            <Divider />
+            <Box my={2}>
+              <Divider />
+            </Box>
             <Typography variant="caption">
               <LocationOnIcon fontSize="inherit" /> {value.location}
             </Typography>

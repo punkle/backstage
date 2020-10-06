@@ -14,41 +14,32 @@
  * limitations under the License.
  */
 import React, { FC } from 'react';
-import { makeStyles } from '@material-ui/core';
-import ReactMarkdown from 'react-markdown';
+import { Chip } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import { InfoCard, Progress } from '@backstage/core';
 import { useAsync } from 'react-use';
 
-const useStyles = makeStyles(() => ({
-  readMe: {
-    '& pre': {
-      padding: '16px',
-      overflow: 'auto',
-      fontSize: '85%',
-      lineHeight: 1.45,
-      backgroundColor: '#f6f8fa',
-      borderRadius: '6px',
-    },
-  },
-}));
-
-type ReadMe = {
-  content: string;
+type Language = {
+  data: {
+    [key: string]: number;
+  };
+  total: number;
 };
 
-type ReadMeCardProps = {
+type LanguageCardProps = {
   projectSlug: string;
 };
 
-const ReadMeCard: FC<ReadMeCardProps> = ({ projectSlug }) => {
-  const classes = useStyles();
-  const { value, loading, error } = useAsync(async (): Promise<ReadMe> => {
+const LanguagesCard: FC<LanguageCardProps> = ({ projectSlug }) => {
+  const { value, loading, error } = useAsync(async (): Promise<Language> => {
     const response = await fetch(
-      `https://api.github.com/repos/${projectSlug}/readme`,
+      `https://api.github.com/repos/${projectSlug}/languages`,
     );
     const data = await response.json();
-    return data;
+    return {
+      data,
+      total: Object.values(data as number).reduce((a, b) => a + b),
+    };
   }, []);
 
   if (loading) {
@@ -57,14 +48,19 @@ const ReadMeCard: FC<ReadMeCardProps> = ({ projectSlug }) => {
     return <Alert severity="error">{error.message}</Alert>;
   }
 
-  return (
-    <InfoCard title="Read me">
-      <ReactMarkdown
-        className={classes.readMe}
-        source={value && atob(value.content)}
-      />
+  return value ? (
+    <InfoCard title="Languages">
+      {Object.entries(value.data).map(language => (
+        <Chip
+          label={
+            <span>
+              {language[0]} - {((language[1] / value.total) * 100).toFixed(2)}%
+            </span>
+          }
+        />
+      ))}
     </InfoCard>
-  );
+  ) : null;
 };
 
-export default ReadMeCard;
+export default LanguagesCard;

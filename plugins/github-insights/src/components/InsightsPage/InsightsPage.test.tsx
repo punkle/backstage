@@ -18,35 +18,25 @@ import { render } from '@testing-library/react';
 import InsightsPage from './InsightsPage';
 import { ThemeProvider } from '@material-ui/core';
 import { lightTheme } from '@backstage/theme';
-import { rest } from 'msw';
-import { setupServer } from 'msw/node';
 
-describe('ExampleComponent', () => {
-  const server = setupServer();
-  // Enable API mocking before tests.
-  beforeAll(() => server.listen());
-
-  // Reset any runtime request handlers we may add during the tests.
-  afterEach(() => server.resetHandlers());
-
-  // Disable API mocking after the tests are done.
-  afterAll(() => server.close());
-
-  // setup mock response
-  beforeEach(() => {
-    server.use(
-      rest.get('/*', (_, res, ctx) => res(ctx.status(200), ctx.json({}))),
-    );
-  });
-
+describe('Insights Page', () => {
   it('should render', () => {
     const rendered = render(
       <ThemeProvider theme={lightTheme}>
-        <InsightsPage />
+        <InsightsPage
+          entity={{
+            apiVersion: '1',
+            kind: 'a',
+            metadata: {
+              name: 'Example Service',
+              annotations: {
+                'github.com/project-slug': 'octocat/Hello-World',
+              },
+            },
+          }}
+        />
       </ThemeProvider>,
     );
-    expect(
-      rendered.getByText('Welcome to github-insights!'),
-    ).toBeInTheDocument();
+    expect(rendered.getByText('GitHub Insights')).toBeInTheDocument();
   });
 });

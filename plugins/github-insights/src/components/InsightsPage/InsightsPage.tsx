@@ -15,34 +15,43 @@
  */
 import React, { FC } from 'react';
 import { Grid } from '@material-ui/core';
-import { Page, pageTheme, Content, ContentHeader } from '@backstage/core';
+import {
+  Page,
+  pageTheme,
+  Content,
+  ContentHeader,
+  SupportButton,
+} from '@backstage/core';
 import { Entity } from '@backstage/catalog-model';
 import ContributorsCard from '../ContributorsCard';
 import ReadMeCard from '../ReadMeCard';
+import LanguagesCard from '../LanguagesCard';
 
 type InsightsPageProps = {
   entity: Entity;
 };
 
 const InsightsPage: FC<InsightsPageProps> = ({ entity }) => {
-  const projectSlug =
-    entity?.metadata?.annotations?.['github.com/project-slug'];
+  const projectSlug = entity.metadata?.annotations?.['github.com/project-slug'];
 
-  return (
+  return projectSlug ? (
     <Page theme={pageTheme.tool}>
       <Content>
-        <ContentHeader title="GitHub Insights" />
-
+        <ContentHeader title="GitHub Insights">
+          <SupportButton>Plugin to show Insights from GitHub</SupportButton>
+        </ContentHeader>
         <Grid container spacing={3} direction="row" alignItems="stretch">
           <Grid item sm={12} md={6} lg={4}>
             <ContributorsCard projectSlug={projectSlug} />
+            <br />
+            <LanguagesCard projectSlug={projectSlug} />
           </Grid>
-          <Grid item sm={12} md={6} lg={4}>
+          <Grid item sm={12} md={6} lg={8}>
             <ReadMeCard projectSlug={projectSlug} />
           </Grid>
         </Grid>
       </Content>
     </Page>
-  );
+  ) : null;
 };
 export default InsightsPage;

@@ -27,7 +27,7 @@ const LightTooltip = withStyles({
     backgroundColor: 'white',
     border: '1px solid lightgrey',
     color: '#333',
-    minWidth: '350px',
+    minWidth: '320px',
   },
 })(Tooltip);
 

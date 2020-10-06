@@ -13,23 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React, { FC } from 'react';
-import { Grid } from '@material-ui/core';
-import Contributor from '../Contributor';
-import { ContributorData } from '../../types';
-
-type ContributorsListProps = {
-  contributors: ContributorData[];
-};
-
-const ContributorsList: FC<ContributorsListProps> = ({ contributors }) => (
-  <Grid container spacing={1} justify="flex-start">
-    {contributors.map(contributor => (
-      <Grid key={contributor.login} item>
-        <Contributor contributor={contributor} />
-      </Grid>
-    ))}
-  </Grid>
-);
-
-export default ContributorsList;
+export { default } from './LanguagesCard';

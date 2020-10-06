@@ -14,28 +14,17 @@
  * limitations under the License.
  */
 import React, { FC } from 'react';
-import { makeStyles, Divider } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import { InfoCard, Progress } from '@backstage/core';
 import { useAsync } from 'react-use';
 import { ContributorData } from './types';
 import ContributorsList from './components/ContributorsList';
 
-const useStyles = makeStyles(() => ({
-  card: {
-    height: '100%',
-  },
-  cardFooter: {
-    margin: '0 -15px',
-  },
-}));
-
 type ContributorsCardProps = {
-  projectSlug: string | undefined;
+  projectSlug: string;
 };
 
 const ContributorsCard: FC<ContributorsCardProps> = ({ projectSlug }) => {
-  const classes = useStyles();
   const { value, loading, error } = useAsync(async (): Promise<
     ContributorData[]
   > => {
@@ -53,11 +42,14 @@ const ContributorsCard: FC<ContributorsCardProps> = ({ projectSlug }) => {
   }
 
   return (
-    <InfoCard title="Contributors" className={classes.card}>
+    <InfoCard
+      title="Contributors"
+      deepLink={{
+        link: `https://github.com/orgs/${projectSlug.split('/')[0]}/people`,
+        title: 'People',
+      }}
+    >
       <ContributorsList contributors={value || []} />
-      <div className={classes.cardFooter}>
-        <Divider />
-      </div>
     </InfoCard>
   );
 };

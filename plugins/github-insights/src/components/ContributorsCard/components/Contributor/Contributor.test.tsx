@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React, { FC } from 'react';
-import { Grid } from '@material-ui/core';
-import Contributor from '../Contributor';
-import { ContributorData } from '../../types';
+import React from 'react';
+import { render } from '@testing-library/react';
+import Contributor from './Contributor';
 
-type ContributorsListProps = {
-  contributors: ContributorData[];
-};
-
-const ContributorsList: FC<ContributorsListProps> = ({ contributors }) => (
-  <Grid container spacing={1} justify="flex-start">
-    {contributors.map(contributor => (
-      <Grid key={contributor.login} item>
-        <Contributor contributor={contributor} />
-      </Grid>
-    ))}
-  </Grid>
-);
-
-export default ContributorsList;
+describe('Contributor component', () => {
+  it('should render', () => {
+    const rendered = render(
+      <Contributor
+        contributor={{
+          name: 'octocat',
+          login: 'octocat',
+          bio: 'Example bio',
+          location: 'Warsaw, Poland',
+        }}
+      />,
+    );
+    expect(rendered.getByAltText('octocat')).toBeInTheDocument();
+  });
+});

@@ -33,13 +33,16 @@ describe('Contributors Component', () => {
   // setup mock response
   beforeEach(() => {
     server.use(
-      rest.get('https://randomuser.me/*', (_, res, ctx) =>
-        res(ctx.status(200), ctx.delay(2000), ctx.json({})),
+      rest.get(
+        'https://api.github.com/repos/octocat/Hello-World/contributors?per_page=10',
+        (_, res, ctx) => res(ctx.status(200), ctx.delay(2000), ctx.json({})),
       ),
     );
   });
   it('should render', async () => {
-    const rendered = render(<ContributorsCard />);
+    const rendered = render(
+      <ContributorsCard projectSlug="octocat/Hello-World" />,
+    );
     expect(await rendered.findByTestId('progress')).toBeInTheDocument();
   });
 });
