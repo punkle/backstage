@@ -49,3 +49,6 @@ sentry:
 techdocs:
   generators:
     techdocs: 'local'
+
+proxy:
+  '/lighthouse': http://{{ include "lighthouse.serviceName" . }}
