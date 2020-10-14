@@ -2,6 +2,10 @@ backend:
   lighthouseHostname: {{ include "lighthouse.serviceName" . | quote }}
   listen:
       port: {{ .Values.appConfig.backend.listen.port | default 7000 }}
+  csp:
+    script-src:
+      - "'self'"
+      - "'unsafe-inline'"
   database:
     client: {{ .Values.appConfig.backend.database.client | quote }}
     connection:
