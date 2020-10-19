@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: boxoffice
+  description: The boxoffice business unit
+spec:
+  type: business-unit
+  parent: infrastructure
+  ancestors: [infrastructure, acme-corp]
+  children: [team-c, team-d]
+  descendants: [team-c, team-d]
