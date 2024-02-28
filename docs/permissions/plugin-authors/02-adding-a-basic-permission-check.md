@@ -105,9 +105,8 @@ export async function createRouter(
     const user = await identity.getIdentity({ request: req });
     author = user?.identity.userEntityRef;
     /* highlight-add-start */
-    const token = getBearerTokenFromAuthorizationHeader(
-      req.header('authorization'),
-    );
+    const token = user?.token;
+
     const decision = (
       await permissions.authorize([{ permission: todoListCreatePermission }], {
       token,
